@@ -129,3 +129,45 @@ LLM_MODEL=llama3.2
 EMBED_MODEL=nomic-embed-text
 ```
 No API key needed. Requires Ollama installed and running locally.
+
+### start-api
+Starts the FastAPI backend server.
+
+```bash
+cd backend
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+API available at: http://localhost:8000
+Swagger docs at: http://localhost:8000/docs
+Health check: http://localhost:8000/health
+
+### Endpoints
+
+**POST /api/chat**
+```json
+// Request
+{ "question": "Who has experience with Python?" }
+
+// Response
+{
+  "answer": "Based on the CVs...",
+  "sources": [
+    { "candidate": "Aria Lewis", "source": "cv_01_Aria_Lewis.pdf", "score": 0.69 }
+  ]
+}
+```
+
+## Full workflow
+
+```bash
+# Terminal 1 — backend
+cd backend
+uv run check-providers
+uv run ingest-cvs
+uv run uvicorn app.main:app --reload --port 8000
+
+# Terminal 2 — frontend
+cd frontend
+npm run dev
+```
