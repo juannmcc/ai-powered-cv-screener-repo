@@ -22,6 +22,7 @@ generate-cvs    = "scripts.generate_cvs:main"
 remove-cvs      = "scripts.remove_cvs:main"
 ingest-cvs      = "scripts.ingest_cvs:main"
 configure       = "scripts.configure:main"
+start-api       = "app.main:app"
 
 [tool.setuptools.packages.find]
 where = ["."]
