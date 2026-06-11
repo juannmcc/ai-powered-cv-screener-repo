@@ -39,6 +39,11 @@ uv run check-providers   # verify your LLM provider is ready
 
 ## Changelog
 
+### v0.1.6
+- uv run configure: interactive CLI to switch LLM provider, image provider, and model
+- OpenAI DALL-E 3 added as image provider option
+- docs/providers.md updated with all provider setup guides
+
 ### v0.1.5
 - AI photo generation via Cloudflare Workers AI (FLUX-1-schnell)
 - Placeholder avatar fallback (initials, color-coded)
