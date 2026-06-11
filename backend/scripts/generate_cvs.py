@@ -27,13 +27,16 @@ from reportlab.platypus import (
     Table,
     TableStyle,
 )
+from datetime import datetime
 
 
 load_dotenv(Path(__file__).parent.parent / ".env")
 
 OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
 LLM_MODEL       = os.getenv("LLM_MODEL", "llama3.2")
-OUTPUT_DIR      = Path(__file__).parent.parent / "data" / "cvs"
+
+_timestamp = datetime.now().strftime("%Y%m%d-%H%M")
+OUTPUT_DIR = Path(__file__).parent.parent / "data" / "cvs" / _timestamp
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 
