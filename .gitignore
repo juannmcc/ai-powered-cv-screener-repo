@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+*.egg-info/
+.env
+
+# ChromaDB
+backend/data/chroma_db/
+
+# PDFs generados
+backend/data/cvs/*.pdf
+
+# Node / Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/.env.local
+
+# OS
+.DS_Store
+
+# IDEs
+.vscode/
+.idea/
