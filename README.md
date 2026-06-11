@@ -2,7 +2,7 @@
 
 > A full-stack prototype for screening CVs using a RAG pipeline. Ask natural language questions about a collection of candidates and get AI-powered answers with source attribution.
 
-## Version: 0.1.0
+## Version: 0.1.2
 
 ## Tech Stack
 
@@ -29,7 +29,22 @@ ai-powered-cv-screener-repo/
 - Node.js 18+
 - Ollama running locally (`ollama serve`)
 
+## Quick Start
+
+```bash
+cd backend
+uv pip install -e .
+uv run check-providers   # verify your LLM provider is ready
+```
+
 ## Changelog
+
+### v0.1.2
+- check-providers CLI command (`uv run check-providers`)
+- docs/cli-commands.md with usage reference
+
+### v0.1.1
+- LLM provider health checker (Ollama, Gemini, OpenRouter)
 
 ### v0.1.0
 - Initial project scaffold
