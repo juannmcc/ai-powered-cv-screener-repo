@@ -9,7 +9,7 @@ __pycache__/
 backend/data/chroma_db/
 
 # PDFs generados
-backend/data/cvs/*.pdf
+backend/data/cvs/
 
 # Node / Next.js
 frontend/node_modules/
