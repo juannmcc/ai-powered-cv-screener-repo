@@ -39,6 +39,14 @@ uv run check-providers   # verify your LLM provider is ready
 
 ## Changelog
 
+### v0.1.4
+- RAG pipeline: PDF text extraction, chunking, embeddings via Ollama nomic-embed-text
+- ChromaDB vector store with cosine similarity search
+- ingest-cvs CLI command (uv run ingest-cvs)
+- Semantic search returning top-K chunks with source attribution
+- Robust JSON parsing for Llama response edge cases
+- gitignore fix: excludes all CV output subfolders
+
 ### v0.1.3
 - CV generation script with Ollama (uv run generate-cvs --limit N)
 - Timestamped output folders (data/cvs/YYYYMMDD-HHMM/)
