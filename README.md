@@ -39,6 +39,13 @@ uv run check-providers   # verify your LLM provider is ready
 
 ## Changelog
 
+### v0.1.7
+- FastAPI chat endpoint POST /api/chat
+- RAG pipeline connected to LLM (Ollama/Gemini/OpenRouter)
+- Source attribution in responses (candidate name + score)
+- Clean candidate names in metadata
+- CORS configured for frontend
+
 ### v0.1.6
 - uv run configure: interactive CLI to switch LLM provider, image provider, and model
 - OpenAI DALL-E 3 added as image provider option
