@@ -5,12 +5,16 @@ description = ""
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "pdfplumber>=0.11.9",
     "python-dotenv>=1.2.2",
+    "reportlab>=4.5.1",
     "requests>=2.34.2",
 ]
 
 [project.scripts]
 check-providers = "scripts.check_providers:main"
+generate-cvs = "scripts.generate_cvs:main"
+remove-cvs = "scripts.remove_cvs:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
