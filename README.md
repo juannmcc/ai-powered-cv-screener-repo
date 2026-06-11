@@ -46,6 +46,7 @@ uv run check-providers   # verify your LLM provider is ready
 - Semantic search returning top-K chunks with source attribution
 - Robust JSON parsing for Llama response edge cases
 - gitignore fix: excludes all CV output subfolders
+- remove-cvs now accepts optional folder name (uv run remove-cvs [folder])
 
 ### v0.1.3
 - CV generation script with Ollama (uv run generate-cvs --limit N)
