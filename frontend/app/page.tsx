@@ -5,7 +5,7 @@ import { Message } from "@/types/chat"
 import { askQuestion } from "@/lib/api"
 import ChatMessage from "@/components/ChatMessage"
 import TypingIndicator from "@/components/TypingIndicator"
-import { Send, BrainCircuit } from "lucide-react"
+import { Send, BrainCircuit, RotateCcw } from "lucide-react"
 
 const SUGGESTIONS = [
   "Who has experience with Python?",
@@ -73,14 +73,26 @@ export default function Home() {
 
       {/* Header */}
       <header className="bg-white border-b border-gray-100 px-6 py-4 shadow-sm">
-        <div className="max-w-3xl mx-auto flex items-center gap-3">
-          <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
-            <BrainCircuit size={20} className="text-white" />
+        <div className="max-w-3xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center">
+              <BrainCircuit size={20} className="text-white" />
+            </div>
+            <div>
+              <h1 className="text-base font-semibold text-gray-900">CV Screener</h1>
+              <p className="text-xs text-gray-400">AI-powered candidate search</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-base font-semibold text-gray-900">CV Screener</h1>
-            <p className="text-xs text-gray-400">AI-powered candidate search</p>
-          </div>
+          {messages.length > 0 && (
+            <button
+              onClick={() => setMessages([])}
+              className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-600 
+                        hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all"
+            >
+              <RotateCcw size={13} />
+              New conversation
+            </button>
+          )}
         </div>
       </header>
 
