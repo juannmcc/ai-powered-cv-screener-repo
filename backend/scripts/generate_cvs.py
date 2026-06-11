@@ -88,7 +88,21 @@ Rules:
     )
     response.raise_for_status()
     content = response.json()["message"]["content"]
-    data = json.loads(content)
+
+    try:
+        data = json.loads(content)
+    except json.JSONDecodeError:
+        start = content.find("{")
+        end   = content.rfind("}") + 1
+        if start != -1 and end > start:
+            data = json.loads(content[start:end])
+        else:
+            raise
+
+    if isinstance(data.get("experience"), list):
+        data["experience"] = [
+            exp for exp in data["experience"] if isinstance(exp, dict)
+        ]
 
     for exp in data.get("experience", []):
         if not isinstance(exp, dict):
