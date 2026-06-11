@@ -9,7 +9,9 @@ import json
 import os
 import random
 import time
+from datetime import datetime
 from pathlib import Path
+from io import BytesIO
 
 import requests
 from dotenv import load_dotenv
@@ -27,7 +29,8 @@ from reportlab.platypus import (
     Table,
     TableStyle,
 )
-from datetime import datetime
+from reportlab.platypus import Image as RLImage
+from scripts.cv_data.photo import fetch_photo, image_to_bytes
 
 
 load_dotenv(Path(__file__).parent.parent / ".env")
@@ -150,16 +153,47 @@ def create_cv_pdf(name: str, role: str, city: str, data: dict, output_path: Path
     story  = []
 
     # Header
-    parts     = name.split()
-    first     = parts[0]
-    last      = parts[1] if len(parts) > 1 else ""
-    email     = f"{first.lower()}.{last.lower()}@email.com"
-    phone     = f"+1 {random.randint(200,999)}-{random.randint(100,999)}-{random.randint(1000,9999)}"
-    linkedin  = f"linkedin.com/in/{first.lower()}{last.lower()}"
+    parts    = name.split()
+    first    = parts[0]
+    last     = parts[1] if len(parts) > 1 else ""
+    email    = f"{first.lower()}.{last.lower()}@email.com"
+    phone    = f"+1 {random.randint(200,999)}-{random.randint(100,999)}-{random.randint(1000,9999)}"
+    linkedin = f"linkedin.com/in/{first.lower()}{last.lower()}"
 
-    story.append(Paragraph(name, styles["name"]))
-    story.append(Paragraph(role, styles["role"]))
-    story.append(Paragraph(f"{city}  ·  {phone}  ·  {email}  ·  {linkedin}", styles["contact"]))
+    photo_flowable = None
+    photo_img = fetch_photo(name)
+    if photo_img:
+        img_bytes = image_to_bytes(photo_img)
+        photo_flowable = RLImage(BytesIO(img_bytes), width=28*mm, height=28*mm)
+
+    name_block = [
+        Paragraph(name, styles["name"]),
+        Paragraph(role, styles["role"]),
+        Paragraph(
+            f"{city}  ·  {phone}  ·  {email}  ·  {linkedin}",
+            styles["contact"],
+        ),
+    ]
+
+    if photo_flowable:
+        header_table = Table(
+            [[photo_flowable, name_block]],
+            colWidths=[32*mm, None],
+        )
+        header_table.setStyle(TableStyle([
+            ("VALIGN", (0, 0), (-1, -1), "MIDDLE"),
+            ("LEFTPADDING", (0, 0), (0, 0), 0),
+            ("RIGHTPADDING", (0, 0), (0, 0), 4*mm),
+        ]))
+        story.append(header_table)
+    else:
+        story.append(Paragraph(name, styles["name"]))
+        story.append(Paragraph(role, styles["role"]))
+        story.append(Paragraph(
+            f"{city}  ·  {phone}  ·  {email}  ·  {linkedin}",
+            styles["contact"],
+        ))
+
     story.append(Spacer(1, 4*mm))
     story.append(HRFlowable(width="100%", thickness=1, color=ACCENT))
     story.append(Spacer(1, 3*mm))
