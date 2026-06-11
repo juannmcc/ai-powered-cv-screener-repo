@@ -39,6 +39,12 @@ uv run check-providers   # verify your LLM provider is ready
 
 ## Changelog
 
+### v0.1.5
+- AI photo generation via Cloudflare Workers AI (FLUX-1-schnell)
+- Placeholder avatar fallback (initials, color-coded)
+- IMAGE_PROVIDER config in .env: "cloudflare" | "placeholder"
+- docs/providers.md: full setup guide for all providers
+
 ### v0.1.4
 - RAG pipeline: PDF text extraction, chunking, embeddings via Ollama nomic-embed-text
 - ChromaDB vector store with cosine similarity search
