@@ -128,4 +128,18 @@ IMAGE_PROVIDER=placeholder
 | OpenRouter | LLM | Free tier / pay-as-you-go | Account + optional credits |
 | Cloudflare Workers AI | Image generation | Free (10k/day) | Free CF account |
 | Placeholder | Image generation | Free | Nothing |
-EOF
+
+### OpenAI DALL-E 3 (pay-as-you-go)
+High quality AI photos via DALL-E 3.
+Requires OpenAI account with billing enabled.
+Cost: ~$0.04 per image.
+
+**Setup:**
+1. Go to https://platform.openai.com/api-keys
+2. Create API key
+3. Add billing at https://platform.openai.com/settings/billing
+
+```env
+IMAGE_PROVIDER=openai
+OPENAI_API_KEY=your_key_here
+```
