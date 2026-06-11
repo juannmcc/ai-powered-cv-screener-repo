@@ -106,7 +106,7 @@ LIGHT  = colors.HexColor("#E5E7EB")
 def build_styles() -> dict:
     return {
         "name": ParagraphStyle("name", fontSize=22, textColor=DARK,
-                               fontName="Helvetica-Bold", spaceAfter=6),
+                               fontName="Helvetica-Bold", spaceAfter=14),
         "role": ParagraphStyle("role", fontSize=12, textColor=ACCENT,
                                fontName="Helvetica", spaceAfter=8),
         "section": ParagraphStyle("section", fontSize=10, textColor=ACCENT,
