@@ -42,6 +42,7 @@ def chunk_text(text: str, chunk_size: int = CHUNK_SIZE, overlap: int = CHUNK_OVE
 
 def ingest_cv(pdf_path: Path, collection) -> int:
     candidate_name = pdf_path.stem
+    clean_name     = pdf_path.stem.split("_", 2)[-1].replace("_", " ")
     text           = extract_text_from_pdf(pdf_path)
 
     if not text:
@@ -51,8 +52,8 @@ def ingest_cv(pdf_path: Path, collection) -> int:
     embeddings = embed_batch(chunks)
 
     ids        = [f"{candidate_name}_chunk_{i}" for i in range(len(chunks))]
-    metadatas  = [{"source": pdf_path.name, "candidate": candidate_name, "chunk": i}
-                  for i in range(len(chunks))]
+    metadatas  = [{"source": pdf_path.name, "candidate": clean_name, "chunk": i}
+              for i in range(len(chunks))]
 
     collection.upsert(
         ids=ids,

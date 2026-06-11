@@ -6,11 +6,14 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "chromadb>=1.5.9",
+    "fastapi>=0.136.3",
     "pdfplumber>=0.11.9",
     "pillow>=12.2.0",
+    "pydantic>=2.13.4",
     "python-dotenv>=1.2.2",
     "reportlab>=4.5.1",
     "requests>=2.34.2",
+    "uvicorn>=0.49.0",
 ]
 
 [project.scripts]
@@ -19,6 +22,7 @@ generate-cvs    = "scripts.generate_cvs:main"
 remove-cvs      = "scripts.remove_cvs:main"
 ingest-cvs      = "scripts.ingest_cvs:main"
 configure       = "scripts.configure:main"
+start-api       = "app.main:app"
 
 [tool.setuptools.packages.find]
 where = ["."]
