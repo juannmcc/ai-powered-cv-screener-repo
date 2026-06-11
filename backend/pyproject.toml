@@ -13,6 +13,7 @@ dependencies = [
 
 [project.scripts]
 check-providers = "scripts.check_providers:main"
+generate-cvs = "scripts.generate_cvs:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

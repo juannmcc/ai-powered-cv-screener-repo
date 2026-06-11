@@ -85,7 +85,17 @@ Rules:
     )
     response.raise_for_status()
     content = response.json()["message"]["content"]
-    return json.loads(content)
+    data = json.loads(content)
+
+    for exp in data.get("experience", []):
+        if not isinstance(exp, dict):
+            continue
+        exp.setdefault("title", exp.get("job_title", exp.get("position", "Unknown Title")))
+        exp.setdefault("company", exp.get("organization", exp.get("employer", "Unknown Company")))
+        exp.setdefault("period", exp.get("duration", exp.get("dates", "N/A")))
+        exp.setdefault("bullets", exp.get("achievements", exp.get("responsibilities", [])))
+
+    return data
 
 ACCENT = colors.HexColor("#2563EB")
 DARK   = colors.HexColor("#111827")
@@ -96,7 +106,7 @@ LIGHT  = colors.HexColor("#E5E7EB")
 def build_styles() -> dict:
     return {
         "name": ParagraphStyle("name", fontSize=22, textColor=DARK,
-                               fontName="Helvetica-Bold", spaceAfter=2),
+                               fontName="Helvetica-Bold", spaceAfter=6),
         "role": ParagraphStyle("role", fontSize=12, textColor=ACCENT,
                                fontName="Helvetica", spaceAfter=8),
         "section": ParagraphStyle("section", fontSize=10, textColor=ACCENT,
@@ -184,18 +194,26 @@ def create_cv_pdf(name: str, role: str, city: str, data: dict, output_path: Path
 
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Generate fake CVs")
+    parser.add_argument("--limit", type=int, default=len(PROFILES),
+                        help=f"Number of CVs to generate (max {len(PROFILES)})")
+    args = parser.parse_args()
+
+    limit = min(args.limit, len(PROFILES))
     names = FIRST_NAMES.copy()
     random.shuffle(names)
 
-    print(f"Generating {len(PROFILES)} CVs...\n")
+    print(f"Generating {limit} CVs...\n")
 
-    for i, profile in enumerate(PROFILES):
+    for i, profile in enumerate(PROFILES[:limit]):
         name = f"{names[i]} {random.choice(LAST_NAMES)}"
         city = random.choice(CITIES)
         slug = name.replace(" ", "_")
         output_path = OUTPUT_DIR / f"cv_{str(i+1).zfill(2)}_{slug}.pdf"
 
-        print(f"[{i+1:02d}/{len(PROFILES)}] {name} — {profile['role']}...")
+        pad = len(str(limit))
+        print(f"[{str(i+1).zfill(pad)}/{limit}] {name} — {profile['role']}...")
 
         try:
             data = generate_cv_content(name, profile["role"], profile["stack"])
@@ -204,7 +222,7 @@ def main():
         except Exception as e:
             print(f"           Error: {e}")
 
-    print(f"\nDone. CVs saved to: {OUTPUT_DIR}")
+    print(f"\nDone. {limit} CVs saved to: {OUTPUT_DIR}")
 
 
 if __name__ == "__main__":
