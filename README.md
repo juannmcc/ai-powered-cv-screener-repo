@@ -39,6 +39,13 @@ uv run check-providers   # verify your LLM provider is ready
 
 ## Changelog
 
+### v0.2.0
+- Full chat UI: Next.js 15, Tailwind, message bubbles, source badges
+- Backend health indicator (green/red/yellow dot)
+- Suggestion cards on empty state
+- New conversation reset button
+- End-to-end RAG pipeline working: CV → embed → search → LLM → UI
+
 ### v0.1.7
 - FastAPI chat endpoint POST /api/chat
 - RAG pipeline connected to LLM (Ollama/Gemini/OpenRouter)
