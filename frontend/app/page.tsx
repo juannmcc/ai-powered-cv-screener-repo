@@ -19,6 +19,21 @@ export default function Home() {
   const [input, setInput]         = useState("")
   const [loading, setLoading]     = useState(false)
   const bottomRef                 = useRef<HTMLDivElement>(null)
+  const [backendStatus, setBackendStatus] = useState<"checking" | "ok" | "error">("checking")
+
+  useEffect(() => {
+    async function checkHealth() {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/health`)
+        setBackendStatus(res.ok ? "ok" : "error")
+      } catch {
+        setBackendStatus("error")
+      }
+    }
+    checkHealth()
+    const interval = setInterval(checkHealth, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -80,13 +95,33 @@ export default function Home() {
             </div>
             <div>
               <h1 className="text-base font-semibold text-gray-900">CV Screener</h1>
-              <p className="text-xs text-gray-400">AI-powered candidate search</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs text-gray-400">AI-powered candidate search</p>
+                  <span className="text-gray-300">·</span>
+                  <div className="flex items-center gap-1">
+                    <div className={`w-1.5 h-1.5 rounded-full ${
+                      backendStatus === "ok" ? "bg-green-400" :
+                      backendStatus === "error" ? "bg-red-400" :
+                      "bg-yellow-400 animate-pulse"
+                    }`} />
+                    <span className={`text-xs ${
+                      backendStatus === "ok" ? "text-green-500" :
+                      backendStatus === "error" ? "text-red-400" :
+                      "text-yellow-500"
+                    }`}>
+                      {backendStatus === "ok" ? "Backend connected" :
+                      backendStatus === "error" ? "Backend offline" :
+                      "Connecting..."}
+                    </span>
+                  </div>
+                </div>
             </div>
+            
           </div>
           {messages.length > 0 && (
             <button
               onClick={() => setMessages([])}
-              className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-600 
+              className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-400 
                         hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all"
             >
               <RotateCcw size={13} />
