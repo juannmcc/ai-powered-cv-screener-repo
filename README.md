@@ -39,6 +39,12 @@ uv run check-providers   # verify your LLM provider is ready
 
 ## Changelog
 
+### v0.1.3
+- CV generation script with Ollama (uv run generate-cvs --limit N)
+- Timestamped output folders (data/cvs/YYYYMMDD-HHMM/)
+- remove-cvs command to clean output folders
+- CV PDF layout with ReportLab, data separated from logic
+
 ### v0.1.2
 - check-providers CLI command (`uv run check-providers`)
 - docs/cli-commands.md with usage reference
