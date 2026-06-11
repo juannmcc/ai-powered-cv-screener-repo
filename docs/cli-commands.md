@@ -28,8 +28,10 @@ uv run check-providers
 Generates fake realistic CVs as PDFs using Ollama. Output saved to `data/cvs/YYYYMMDD-HHMM/`.
 
 ```bash
-uv run generate-cvs              # generates all 25 CVs
-uv run generate-cvs --limit 3   # generates only 3 (useful for testing)
+uv run generate-cvs                        # generates all 25 CVs with AI photos
+uv run generate-cvs --limit 3             # generates only 3 (useful for testing)
+uv run generate-cvs --no-image            # skip AI photo generation (faster)
+uv run generate-cvs --limit 3 --no-image  # combine both flags
 ```
 
 ---

@@ -143,7 +143,7 @@ def build_styles() -> dict:
     }
 
 
-def create_cv_pdf(name: str, role: str, city: str, data: dict, output_path: Path):
+def create_cv_pdf(name: str, role: str, city: str, data: dict, output_path: Path, use_photo: bool = True):
     doc = SimpleDocTemplate(
         str(output_path), pagesize=A4,
         leftMargin=18*mm, rightMargin=18*mm,
@@ -161,7 +161,7 @@ def create_cv_pdf(name: str, role: str, city: str, data: dict, output_path: Path
     linkedin = f"linkedin.com/in/{first.lower()}{last.lower()}"
 
     photo_flowable = None
-    photo_img = fetch_photo(name)
+    photo_img = fetch_photo(name) if use_photo else None
     if photo_img:
         img_bytes = image_to_bytes(photo_img)
         photo_flowable = RLImage(BytesIO(img_bytes), width=28*mm, height=28*mm)
@@ -249,6 +249,8 @@ def main():
     parser = argparse.ArgumentParser(description="Generate fake CVs")
     parser.add_argument("--limit", type=int, default=len(PROFILES),
                         help=f"Number of CVs to generate (max {len(PROFILES)})")
+    parser.add_argument("--no-image", action="store_true",
+                        help="Skip AI photo generation, use placeholder instead")
     args = parser.parse_args()
 
     limit = min(args.limit, len(PROFILES))
@@ -268,12 +270,14 @@ def main():
 
         try:
             data = generate_cv_content(name, profile["role"], profile["stack"])
-            create_cv_pdf(name, profile["role"], city, data, output_path)
+            create_cv_pdf(name, profile["role"], city, data, output_path, use_photo=not args.no_image)
             print(f"           Saved: {output_path.name}")
         except Exception as e:
             print(f"           Error: {e}")
 
     print(f"\nDone. {limit} CVs saved to: {OUTPUT_DIR}")
+
+
 
 
 if __name__ == "__main__":
