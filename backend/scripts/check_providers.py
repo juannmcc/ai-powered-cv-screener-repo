@@ -144,7 +144,7 @@ def main():
         ok, msg = checker(cfg)
         results[key] = ok
         status = "Ready" if ok else "Not available"
-        active = "ACTIVE" if key == ACTIVE_PROVIDER else ""
+        active = " ACTIVE" if key == ACTIVE_PROVIDER else ""
         print(f"  {status}  {cfg['label']}{active}")
         print(f"           {msg}\n")
 

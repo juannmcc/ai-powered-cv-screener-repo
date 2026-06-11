@@ -8,3 +8,10 @@ dependencies = [
     "python-dotenv>=1.2.2",
     "requests>=2.34.2",
 ]
+
+[project.scripts]
+check-providers = "scripts.check_providers:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["scripts*"]
