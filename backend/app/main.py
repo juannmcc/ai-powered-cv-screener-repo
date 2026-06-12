@@ -16,7 +16,7 @@ AVATARS_DIR.mkdir(parents=True, exist_ok=True)
 app = FastAPI(
     title="AI-Powered CV Screener",
     description="RAG-based CV screening API",
-    version="1.0.5",
+    version="1.0.6",
 )
 
 app.add_middleware(
@@ -43,7 +43,7 @@ async def health():
     try:
         db_path = CHROMA_DIR / "chroma.sqlite3"
         if not db_path.exists():
-            return {"status": "ok", "version": "1.0.5", "ingested": False, "chunks": 0}
+            return {"status": "ok", "version": "1.0.6", "ingested": False, "chunks": 0}
         
         conn  = sqlite3.connect(str(db_path))
         cur   = conn.cursor()
@@ -53,9 +53,9 @@ async def health():
         
         return {
             "status":   "ok",
-            "version":  "1.0.5",
+            "version":  "1.0.6",
             "ingested": count > 0,
             "chunks":   count,
         }
     except Exception:
-        return {"status": "ok", "version": "1.0.5", "ingested": False, "chunks": 0}
+        return {"status": "ok", "version": "1.0.6", "ingested": False, "chunks": 0}
