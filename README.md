@@ -39,6 +39,11 @@ uv run check-providers   # verify your LLM provider is ready
 
 ## Changelog
 
+### v0.3.0
+- docs/diagram.md: full Mermaid architecture diagram
+- README: embedded simplified diagram
+- Provider options table with status
+
 ### v0.2.2
 - /api/stats endpoint: chunks, CV count, provider, model
 - Dynamic CV counter in UI (from backend)
