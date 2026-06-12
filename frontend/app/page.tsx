@@ -9,11 +9,10 @@ import TypingIndicator from "@/components/TypingIndicator"
 import { Send, BrainCircuit, RotateCcw, Database, Settings, Copy, Check } from "lucide-react"
 import IngestBanner from "@/components/IngestBanner"
 
-const SUGGESTIONS = [
+const BASE_SUGGESTIONS = [
   "Who has experience with Python?",
   "Which candidates have a background in machine learning?",
   "Who is the most senior engineer?",
-  "Summarize the profile of Aria Lewis",
 ]
 
 const START_CMD = "cd backend && uv run uvicorn app.main:app --host 0.0.0.0 --port 8000"
@@ -52,8 +51,15 @@ export default function Home() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages, loading])
 
+  const dynamicSuggestions = [
+    ...BASE_SUGGESTIONS,
+    candidates.length > 0
+      ? `Summarize the profile of ${candidates[0].name}`
+      : "Who is the most experienced candidate?",
+  ]
+
   async function sendMessage(question: string) {
-    if (!question.trim() || loading || backendStatus !== "ok") return
+    if (!question.trim() || loading || backendStatus !== "ok" || !ingested) return
 
     const userMsg: Message = {
       id: crypto.randomUUID(),
@@ -147,8 +153,8 @@ export default function Home() {
                 <span className="text-gray-300">·</span>
                 <div className="flex items-center gap-1">
                   <div className={`w-1.5 h-1.5 rounded-full ${
-                    backendStatus === "ok"       ? "bg-green-400" :
-                    backendStatus === "error"    ? "bg-red-400" :
+                    backendStatus === "ok"    ? "bg-green-400" :
+                    backendStatus === "error" ? "bg-red-400" :
                     "bg-yellow-400 animate-pulse"
                   }`} />
                   <span className={`text-xs ${
@@ -174,17 +180,17 @@ export default function Home() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-           <a
-            href="/settings"
-            className={`flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg transition-all ${
-              isOffline
-                ? "text-gray-300 cursor-not-allowed pointer-events-none"
-                : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
-            }`}
-          >
-            <Settings size={13} />
-            Settings
-          </a>
+            <a
+              href="/settings"
+              className={`flex items-center gap-2 px-3 py-1.5 text-xs rounded-lg transition-all ${
+                isOffline
+                  ? "text-gray-300 cursor-not-allowed pointer-events-none"
+                  : "text-gray-400 hover:text-gray-600 hover:bg-gray-50"
+              }`}
+            >
+              <Settings size={13} />
+              Settings
+            </a>
             {messages.length > 0 && !isOffline && (
               <button
                 onClick={() => setMessages([])}
@@ -226,7 +232,7 @@ export default function Home() {
                   <p className="text-gray-400 text-sm mb-4">
                     Start the backend server to get started.
                   </p>
-                  <div className="inline-flex items-center gap-2 bg-gray-900 rounded-xl px-4 py-3 group">
+                  <div className="inline-flex items-center gap-2 bg-gray-900 rounded-xl px-4 py-3">
                     <code className="text-xs text-gray-300 font-mono">
                       {START_CMD}
                     </code>
@@ -257,19 +263,21 @@ export default function Home() {
                     </span>{" "}
                     using natural language
                   </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto">
-                    {SUGGESTIONS.map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => sendMessage(s)}
-                        className="text-left px-4 py-3 bg-white border border-gray-100
-                                   rounded-xl text-sm text-gray-600 hover:border-blue-200
-                                   hover:text-blue-600 hover:bg-blue-50 transition-all shadow-sm"
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
+                  {ingested && candidates.length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto">
+                      {dynamicSuggestions.map((s) => (
+                        <button
+                          key={s}
+                          onClick={() => sendMessage(s)}
+                          className="text-left px-4 py-3 bg-white border border-gray-100
+                                     rounded-xl text-sm text-gray-600 hover:border-blue-200
+                                     hover:text-blue-600 hover:bg-blue-50 transition-all shadow-sm"
+                        >
+                          {s}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </>
               )}
             </div>
@@ -296,8 +304,12 @@ export default function Home() {
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={isOffline ? "Backend offline — start the server first" : "Ask about candidates..."}
-            disabled={loading || isOffline}
+            placeholder={
+              isOffline  ? "Backend offline — start the server first" :
+              !ingested  ? "No CVs ingested — go to Settings first" :
+              "Ask about candidates..."
+            }
+            disabled={loading || isOffline || !ingested}
             className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl
                        text-sm text-gray-800 placeholder-gray-400 outline-none
                        focus:border-blue-300 focus:bg-white transition-all
@@ -305,7 +317,7 @@ export default function Home() {
           />
           <button
             onClick={() => sendMessage(input)}
-            disabled={loading || !input.trim() || isOffline}
+            disabled={loading || !input.trim() || isOffline || !ingested}
             className="w-11 h-11 bg-blue-600 hover:bg-blue-700 disabled:opacity-40
                        rounded-xl flex items-center justify-center transition-all
                        disabled:cursor-not-allowed"
