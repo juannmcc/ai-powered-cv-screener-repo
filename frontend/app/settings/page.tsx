@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft, Check, X, Loader2, RefreshCw, Server, Image, Cpu, Key } from "lucide-react"
+import { ArrowLeft, Check, X, Loader2, RefreshCw, Server, Image, Cpu, Key, Edit2 } from "lucide-react"
 import CVManagement from "@/components/CVManagement"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
@@ -38,6 +38,63 @@ function StatusMessage({ status, message }: { status: StatusType; message: strin
   if (status === "idle") return null
   const color = status === "valid" ? "text-green-600" : status === "invalid" ? "text-red-500" : "text-yellow-600"
   return <p className={`text-xs mt-1 ${color}`}>{message}</p>
+}
+
+interface KeyInputProps {
+  envKey: string
+  provider: string
+  hasKey: boolean
+  placeholder: string
+  keyInputs: Record<string, string>
+  setKeyInputs: (fn: (prev: Record<string, string>) => Record<string, string>) => void
+  onSave: (envKey: string, provider: string) => void
+}
+
+function KeyInput({ envKey, provider, hasKey, placeholder, keyInputs, setKeyInputs, onSave }: KeyInputProps) {
+  const [editing, setEditing] = useState(false)
+
+  if (hasKey && !editing) {
+    return (
+      <div className="flex items-center gap-2 mt-2">
+        <span className="text-xs text-gray-400 font-mono">••••••••••••••••</span>
+        <button
+          onClick={() => setEditing(true)}
+          className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <Edit2 size={11} />
+          Change key
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex gap-2 mt-2">
+      <input
+        type="password"
+        placeholder={placeholder}
+        value={keyInputs[envKey] || ""}
+        onChange={e => setKeyInputs(prev => ({ ...prev, [envKey]: e.target.value }))}
+        className="text-xs border border-gray-200 rounded-lg px-3 py-1.5 flex-1
+                   focus:outline-none focus:border-blue-300"
+        autoFocus={editing}
+      />
+      <button
+        onClick={() => { onSave(envKey, provider); setEditing(false) }}
+        className="text-xs px-3 py-1.5 bg-gray-800 text-white rounded-lg hover:bg-gray-900"
+      >
+        Save
+      </button>
+      {editing && (
+        <button
+          onClick={() => { setEditing(false); setKeyInputs(prev => ({ ...prev, [envKey]: "" })) }}
+          className="text-xs px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200"
+        >
+          Cancel
+        </button>
+      )}
+    </div>
+  )
 }
 
 export default function SettingsPage() {
@@ -77,9 +134,7 @@ export default function SettingsPage() {
 
   async function validateAll(s: Settings) {
     const providers = ["ollama", "gemini", "openrouter", "cloudflare"]
-    for (const p of providers) {
-      validateProvider(p)
-    }
+    for (const p of providers) validateProvider(p)
   }
 
   async function saveSetting(key: string, value: string) {
@@ -156,7 +211,7 @@ export default function SettingsPage() {
               <button
                 onClick={() => saveSetting("LLM_PROVIDER", "ollama")}
                 disabled={settings.llm_provider === "ollama" || saving === "LLM_PROVIDER"}
-                className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg 
+                className="text-xs px-3 py-1.5 bg-blue-600 text-white rounded-lg
                            hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all"
               >
                 {settings.llm_provider === "ollama" ? "Active" : "Use"}
@@ -194,24 +249,15 @@ export default function SettingsPage() {
                 </div>
                 <p className="text-xs text-gray-400">Free tier (region restricted). Requires API key.</p>
                 <StatusMessage status={validations["gemini"] || "idle"} message={validationMsgs["gemini"] || ""} />
-                {!settings.has_gemini_key && (
-                  <div className="flex gap-2 mt-2">
-                    <input
-                      type="password"
-                      placeholder="AIza..."
-                      value={keyInputs["GEMINI_API_KEY"] || ""}
-                      onChange={e => setKeyInputs(prev => ({ ...prev, GEMINI_API_KEY: e.target.value }))}
-                      className="text-xs border border-gray-200 rounded-lg px-3 py-1.5 flex-1
-                                 focus:outline-none focus:border-blue-300"
-                    />
-                    <button
-                      onClick={() => saveKey("GEMINI_API_KEY", "gemini")}
-                      className="text-xs px-3 py-1.5 bg-gray-800 text-white rounded-lg hover:bg-gray-900"
-                    >
-                      Save
-                    </button>
-                  </div>
-                )}
+                <KeyInput
+                  envKey="GEMINI_API_KEY"
+                  provider="gemini"
+                  hasKey={settings.has_gemini_key}
+                  placeholder="AIza..."
+                  keyInputs={keyInputs}
+                  setKeyInputs={setKeyInputs}
+                  onSave={saveKey}
+                />
               </div>
               <button
                 onClick={() => saveSetting("LLM_PROVIDER", "gemini")}
@@ -237,24 +283,15 @@ export default function SettingsPage() {
                 </div>
                 <p className="text-xs text-gray-400">Free tier / pay-as-you-go. Requires API key.</p>
                 <StatusMessage status={validations["openrouter"] || "idle"} message={validationMsgs["openrouter"] || ""} />
-                {!settings.has_openrouter_key && (
-                  <div className="flex gap-2 mt-2">
-                    <input
-                      type="password"
-                      placeholder="sk-or-..."
-                      value={keyInputs["OPENROUTER_API_KEY"] || ""}
-                      onChange={e => setKeyInputs(prev => ({ ...prev, OPENROUTER_API_KEY: e.target.value }))}
-                      className="text-xs border border-gray-200 rounded-lg px-3 py-1.5 flex-1
-                                 focus:outline-none focus:border-blue-300"
-                    />
-                    <button
-                      onClick={() => saveKey("OPENROUTER_API_KEY", "openrouter")}
-                      className="text-xs px-3 py-1.5 bg-gray-800 text-white rounded-lg hover:bg-gray-900"
-                    >
-                      Save
-                    </button>
-                  </div>
-                )}
+                <KeyInput
+                  envKey="OPENROUTER_API_KEY"
+                  provider="openrouter"
+                  hasKey={settings.has_openrouter_key}
+                  placeholder="sk-or-..."
+                  keyInputs={keyInputs}
+                  setKeyInputs={setKeyInputs}
+                  onSave={saveKey}
+                />
               </div>
               <button
                 onClick={() => saveSetting("LLM_PROVIDER", "openrouter")}
@@ -288,24 +325,15 @@ export default function SettingsPage() {
                 </div>
                 <p className="text-xs text-gray-400">Free (10k/day). FLUX AI-generated photos.</p>
                 <StatusMessage status={validations["cloudflare"] || "idle"} message={validationMsgs["cloudflare"] || ""} />
-                {!settings.has_cloudflare_key && (
-                  <div className="flex gap-2 mt-2">
-                    <input
-                      type="password"
-                      placeholder="Cloudflare API Token"
-                      value={keyInputs["CLOUDFLARE_API_TOKEN"] || ""}
-                      onChange={e => setKeyInputs(prev => ({ ...prev, CLOUDFLARE_API_TOKEN: e.target.value }))}
-                      className="text-xs border border-gray-200 rounded-lg px-3 py-1.5 flex-1
-                                 focus:outline-none focus:border-blue-300"
-                    />
-                    <button
-                      onClick={() => saveKey("CLOUDFLARE_API_TOKEN", "cloudflare")}
-                      className="text-xs px-3 py-1.5 bg-gray-800 text-white rounded-lg hover:bg-gray-900"
-                    >
-                      Save
-                    </button>
-                  </div>
-                )}
+                <KeyInput
+                  envKey="CLOUDFLARE_API_TOKEN"
+                  provider="cloudflare"
+                  hasKey={settings.has_cloudflare_key}
+                  placeholder="Cloudflare API Token"
+                  keyInputs={keyInputs}
+                  setKeyInputs={setKeyInputs}
+                  onSave={saveKey}
+                />
               </div>
               <button
                 onClick={() => saveSetting("IMAGE_PROVIDER", "cloudflare")}
@@ -345,19 +373,20 @@ export default function SettingsPage() {
 
         {/* CV Management */}
         <section className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-50 flex items-center gap-2">
-                <Cpu size={16} className="text-green-600" />
-                <h2 className="text-sm font-semibold text-gray-800">CV Management</h2>
-            </div>
-            <div className="p-6 space-y-6">
-                <CVManagement />
-            </div>
+          <div className="px-6 py-4 border-b border-gray-50 flex items-center gap-2">
+            <Cpu size={16} className="text-green-600" />
+            <h2 className="text-sm font-semibold text-gray-800">CV Management</h2>
+          </div>
+          <div className="p-6 space-y-6">
+            <CVManagement />
+          </div>
         </section>
 
         {/* Info */}
         <p className="text-xs text-gray-400 text-center pb-8">
-          Changes are saved to <code className="bg-gray-100 px-1 rounded">backend/.env</code> immediately.
-          Restart the backend to apply LLM provider changes.
+          Changes are saved to{" "}
+          <code className="bg-gray-100 px-1 rounded">backend/.env</code>{" "}
+          immediately. Restart the backend to apply LLM provider changes.
         </p>
 
       </main>
