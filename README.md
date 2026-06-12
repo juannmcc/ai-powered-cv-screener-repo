@@ -39,6 +39,12 @@ uv run check-providers   # verify your LLM provider is ready
 
 ## Changelog
 
+### v0.2.2
+- /api/stats endpoint: chunks, CV count, provider, model
+- Dynamic CV counter in UI (from backend)
+- Provider + model shown in header
+- Source attribution polished with percentage scores
+
 ### v0.2.1
 - Custom exceptions: ProviderError, CollectionEmptyError
 - Structured error responses from API (error code + detail)
