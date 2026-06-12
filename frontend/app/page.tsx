@@ -6,7 +6,7 @@ import CandidateBrowser from "@/components/CandidateBrowser"
 import { askQuestion, checkHealth, fetchStats, fetchCandidates, fetchSuggestions, APIError, Stats, Candidate } from "@/lib/api"
 import ChatMessage from "@/components/ChatMessage"
 import TypingIndicator from "@/components/TypingIndicator"
-import { Send, BrainCircuit, RotateCcw, Database } from "lucide-react"
+import { Send, BrainCircuit, RotateCcw, Database, Settings } from "lucide-react"
 import IngestBanner from "@/components/IngestBanner"
 
 const SUGGESTIONS = [
@@ -156,23 +156,33 @@ export default function Home() {
                     <span className="text-gray-300">·</span>
                     <div className="flex items-center gap-1 text-xs text-gray-400">
                       <Database size={10} />
-                      <span>{stats.estimated_cvs} CVs · {stats.provider}/{stats.model}</span>
+                      <span>{stats.estimated_cvs} CVs</span>
                     </div>
                   </>
                 )}
               </div>
             </div>
           </div>
-          {messages.length > 0 && (
-            <button
-              onClick={() => setMessages([])}
+          <div className="flex items-center gap-2">
+            <a
+              href="/settings"
               className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-400
-                         hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all"
+                        hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all"
             >
-              <RotateCcw size={13} />
-              New conversation
-            </button>
-          )}
+              <Settings size={13} />
+              Settings
+            </a>
+            {messages.length > 0 && (
+              <button
+                onClick={() => setMessages([])}
+                className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-400
+                          hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all"
+              >
+                <RotateCcw size={13} />
+                New conversation
+              </button>
+            )}
+          </div>
         </div>
       </header>
 

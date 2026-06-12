@@ -12,26 +12,32 @@ from app.services.rag import ingest_all
 
 
 def main():
-    import shutil
-    from app.core.config import CHROMA_DIR
+    import argparse
+    from pathlib import Path
+    from app.core.config import CVS_DIR
 
-    if CHROMA_DIR.exists():
-        shutil.rmtree(CHROMA_DIR)
-        CHROMA_DIR.mkdir(parents=True, exist_ok=True)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--folder", type=str, default=None,
+                        help="Specific folder name to ingest")
+    args = parser.parse_args()
 
-    results = ingest_all()
+    if args.folder:
+        cvs_dir = CVS_DIR / args.folder
+        if not cvs_dir.exists():
+            print(f"Folder '{args.folder}' not found.")
+            return
+        if not list(cvs_dir.glob("*.pdf")):
+            print(f"No PDFs found in '{args.folder}'. Generate CVs first.")
+            return
+    else:
+        cvs_dir = None
+
+    from app.services.rag import ingest_all
+    results = ingest_all(cvs_dir)
     if results["errors"]:
         print(f"\nErrors ({len(results['errors'])}):")
         for e in results["errors"]:
             print(f"  {e['file']}: {e['error']}")
-
-    try:
-        import requests
-        r = requests.post("http://localhost:8000/api/reload", timeout=3)
-        if r.status_code == 200:
-            print("Backend reloaded successfully.")
-    except Exception:
-        pass
 
 
 if __name__ == "__main__":
