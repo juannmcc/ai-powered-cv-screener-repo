@@ -34,4 +34,24 @@ app.mount("/avatars", StaticFiles(directory=str(AVATARS_DIR)), name="avatars")
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "version": "0.3.2"}
+    import sqlite3
+    from app.core.config import CHROMA_DIR
+    try:
+        db_path = CHROMA_DIR / "chroma.sqlite3"
+        if not db_path.exists():
+            return {"status": "ok", "version": "0.3.3", "ingested": False, "chunks": 0}
+        
+        conn  = sqlite3.connect(str(db_path))
+        cur   = conn.cursor()
+        cur.execute("SELECT COUNT(*) FROM embeddings")
+        count = cur.fetchone()[0]
+        conn.close()
+        
+        return {
+            "status":   "ok",
+            "version":  "0.3.3",
+            "ingested": count > 0,
+            "chunks":   count,
+        }
+    except Exception:
+        return {"status": "ok", "version": "0.3.3", "ingested": False, "chunks": 0}

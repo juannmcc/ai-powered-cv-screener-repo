@@ -25,6 +25,14 @@ def main():
         for e in results["errors"]:
             print(f"  {e['file']}: {e['error']}")
 
+    try:
+        import requests
+        r = requests.post("http://localhost:8000/api/reload", timeout=3)
+        if r.status_code == 200:
+            print("Backend reloaded successfully.")
+    except Exception:
+        pass
+
 
 if __name__ == "__main__":
     main()

@@ -3,8 +3,8 @@ RAG service — PDF ingestion, chunking, vector storage, and retrieval.
 """
 
 from pathlib import Path
-import pdfplumber
 import chromadb
+import pdfplumber
 from app.core.config import (
     CHROMA_DIR, COLLECTION_NAME,
     CHUNK_SIZE, CHUNK_OVERLAP, TOP_K_RESULTS,
@@ -12,11 +12,10 @@ from app.core.config import (
 from app.services.embeddings import embed, embed_batch
 
 
-def get_collection():
-    client = chromadb.PersistentClient(path=str(CHROMA_DIR))
-    return client.get_or_create_collection(
-        name=COLLECTION_NAME,
-        metadata={"hnsw:space": "cosine"},
+def _new_client():
+    return chromadb.PersistentClient(
+        path=str(CHROMA_DIR),
+        settings=chromadb.Settings(anonymized_telemetry=False),
     )
 
 
@@ -50,10 +49,9 @@ def ingest_cv(pdf_path: Path, collection) -> int:
 
     chunks     = chunk_text(text)
     embeddings = embed_batch(chunks)
-
     ids        = [f"{candidate_name}_chunk_{i}" for i in range(len(chunks))]
     metadatas  = [{"source": pdf_path.name, "candidate": clean_name, "chunk": i}
-              for i in range(len(chunks))]
+                  for i in range(len(chunks))]
 
     collection.upsert(
         ids=ids,
@@ -65,13 +63,21 @@ def ingest_cv(pdf_path: Path, collection) -> int:
 
 
 def ingest_all(cvs_dir: Path = None) -> dict:
+    import shutil
     if cvs_dir is None:
         from app.core.config import CVS_DIR
         cvs_dir = CVS_DIR
 
-    collection = get_collection()
-    results    = {"processed": 0, "chunks": 0, "errors": []}
+    if CHROMA_DIR.exists():
+        shutil.rmtree(CHROMA_DIR)
+    CHROMA_DIR.mkdir(parents=True, exist_ok=True)
 
+    client     = _new_client()
+    collection = client.get_or_create_collection(
+        name=COLLECTION_NAME,
+        metadata={"hnsw:space": "cosine"},
+    )
+    results   = {"processed": 0, "chunks": 0, "errors": []}
     pdf_files = sorted(cvs_dir.rglob("*.pdf"))
 
     if not pdf_files:
@@ -91,12 +97,18 @@ def ingest_all(cvs_dir: Path = None) -> dict:
             results["errors"].append({"file": pdf_path.name, "error": str(e)})
             print(f"             Error: {e}")
 
+    del client
     print(f"\nDone. {results['processed']} CVs → {results['chunks']} chunks in ChromaDB")
     return results
 
 
 def search(query: str, top_k: int = TOP_K_RESULTS) -> list[dict]:
-    collection    = get_collection()
+    import gc
+    client     = _new_client()
+    collection = client.get_or_create_collection(
+        name=COLLECTION_NAME,
+        metadata={"hnsw:space": "cosine"},
+    )
     query_embedding = embed(query)
 
     results = collection.query(
@@ -118,4 +130,6 @@ def search(query: str, top_k: int = TOP_K_RESULTS) -> list[dict]:
             "score":     round(1 - dist, 4),
         })
 
+    del client
+    gc.collect()
     return hits

@@ -15,6 +15,12 @@ export interface Candidate {
   avatar: string
 }
 
+export interface HealthStatus {
+  ok: boolean
+  ingested: boolean
+  chunks: number
+}
+
 export class APIError extends Error {
   constructor(
     public code: string,
@@ -45,12 +51,20 @@ export async function askQuestion(question: string): Promise<ChatResponse> {
   return res.json()
 }
 
-export async function checkHealth(): Promise<boolean> {
+export async function checkHealth(): Promise<HealthStatus> {
   try {
-    const res = await fetch(`${API_URL}/health`, { signal: AbortSignal.timeout(3000) })
-    return res.ok
+    const res = await fetch(`${API_URL}/health`, {
+      signal: AbortSignal.timeout(3000)
+    })
+    if (!res.ok) return { ok: false, ingested: false, chunks: 0 }
+    const data = await res.json()
+    return {
+      ok:       data.status === "ok",
+      ingested: data.ingested ?? false,
+      chunks:   data.chunks ?? 0,
+    }
   } catch {
-    return false
+    return { ok: false, ingested: false, chunks: 0 }
   }
 }
 

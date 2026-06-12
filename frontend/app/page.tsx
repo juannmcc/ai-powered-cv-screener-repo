@@ -7,6 +7,7 @@ import { askQuestion, checkHealth, fetchStats, fetchCandidates, fetchSuggestions
 import ChatMessage from "@/components/ChatMessage"
 import TypingIndicator from "@/components/TypingIndicator"
 import { Send, BrainCircuit, RotateCcw, Database } from "lucide-react"
+import IngestBanner from "@/components/IngestBanner"
 
 const SUGGESTIONS = [
   "Who has experience with Python?",
@@ -20,6 +21,7 @@ export default function Home() {
   const [input, setInput]                 = useState("")
   const [loading, setLoading]             = useState(false)
   const [backendStatus, setBackendStatus] = useState<"checking" | "ok" | "error">("checking")
+  const [ingested, setIngested]           = useState(false)
   const [stats, setStats]                 = useState<Stats | null>(null)
   const [candidates, setCandidates]       = useState<Candidate[]>([])
   const [browserOpen, setBrowserOpen]     = useState(false)
@@ -27,15 +29,20 @@ export default function Home() {
 
   useEffect(() => {
     async function check() {
-      const ok = await checkHealth()
-      setBackendStatus(ok ? "ok" : "error")
-      if (ok) {
+      const health = await checkHealth()
+      console.log("ingested:", health.ingested, "chunks:", health.chunks)
+      setBackendStatus(health.ok ? "ok" : "error")
+      setIngested(health.ingested)
+      if (health.ok) {
         try { const s = await fetchStats(); setStats(s) } catch {}
         try { const c = await fetchCandidates(); setCandidates(c) } catch {}
+      } else {
+        setStats(null)
+        setCandidates([])
       }
     }
     check()
-    const interval = setInterval(check, 1500)
+    const interval = setInterval(check, 1200)
     return () => clearInterval(interval)
   }, [])
 
@@ -168,6 +175,11 @@ export default function Home() {
           )}
         </div>
       </header>
+
+      <IngestBanner
+        ingested={ingested}
+        backendOk={backendStatus === "ok"}
+      />
 
       {/* Messages */}
       <main className="flex-1 overflow-y-auto px-4 py-6">
