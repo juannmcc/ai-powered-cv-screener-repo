@@ -3,7 +3,7 @@
 > A full-stack prototype for screening CVs using a RAG (Retrieval-Augmented Generation) pipeline.
 > Ask natural language questions about a collection of candidates and get AI-powered answers with source attribution.
 
-## Version: 1.0.0
+## Version: 1.1.0
 
 ## Overview
 
@@ -159,6 +159,16 @@ See [docs/providers.md](docs/providers.md) for detailed setup guides for all pro
 See [docs/architecture.md](docs/architecture.md) and [docs/diagram.md](docs/diagram.md).
 
 ## Changelog
+
+### v1.1.0
+- Hexagonal architecture: domain, application, infrastructure, interfaces layers
+- Domain entities: Candidate, Chunk, ChatResponse, Source
+- Domain ports: LLMPort, EmbeddingPort, VectorStorePort, PDFPort
+- Infrastructure adapters: Ollama, Gemini, OpenRouter, ChromaDB, pdfplumber
+- Application use cases: ChatUseCase, IngestUseCase
+- Dependency injection via FastAPI Depends
+- Legacy services layer removed
+- docs/hexagonal.md: architecture documentation
 
 ### v1.0.0
 - Complete full-stack RAG application

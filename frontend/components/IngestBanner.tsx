@@ -22,7 +22,7 @@ console.log("IngestBanner props:", { ingested, backendOk })
                         rounded-lg border border-amber-200 ml-auto flex-shrink-0">
           <Terminal size={12} className="text-amber-600" />
           <code className="text-xs text-amber-700 font-mono">
-            Go to Configuration to ingest CVs now.
+            <a href="/settings">Go to Settings to ingest CVs now.</a> 
           </code>
         </div>
       </div>
