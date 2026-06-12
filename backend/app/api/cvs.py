@@ -5,12 +5,11 @@ CV Management API — list, generate, ingest, and delete CV collections.
 import asyncio
 import shutil
 import sqlite3
-import subprocess
-import sys
 import os
+import sys
 from pathlib import Path
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Query
 from fastapi.responses import StreamingResponse
 
 from app.core.config import AVATARS_DIR, BASE_DIR, CHROMA_DIR, CVS_DIR
@@ -48,8 +47,8 @@ async def list_cvs():
         pass
 
     return {
-        "folders":        [_folder_info(f) for f in folders],
-        "total_pdfs":     total_pdfs,
+        "folders":         [_folder_info(f) for f in folders],
+        "total_pdfs":      total_pdfs,
         "ingested_chunks": chunks,
     }
 
@@ -69,22 +68,22 @@ async def delete_all():
         for f in CVS_DIR.iterdir():
             if f.is_dir():
                 shutil.rmtree(f)
-
     if AVATARS_DIR.exists():
         shutil.rmtree(AVATARS_DIR)
         AVATARS_DIR.mkdir()
-
     if CHROMA_DIR.exists():
         shutil.rmtree(CHROMA_DIR)
         CHROMA_DIR.mkdir()
-
     return {"success": True}
 
 
 @router.post("/cvs/ingest")
 async def ingest_cvs(folder: str = None):
     async def stream():
-        args = [sys.executable, "-u", "-m", "scripts.ingest_cvs"]
+        args = [
+            sys.executable, "-u",
+            str(BASE_DIR / "scripts" / "ingest_cvs.py"),
+        ]
         if folder:
             args.extend(["--folder", folder])
         try:
@@ -106,15 +105,17 @@ async def ingest_cvs(folder: str = None):
     return StreamingResponse(stream(), media_type="text/event-stream")
 
 
-from fastapi import Query
-
 @router.post("/cvs/generate")
 async def generate_cvs(
-    limit: int = Query(default=25),
+    limit:    int  = Query(default=25),
     no_image: bool = Query(default=False),
 ):
     async def stream():
-        args = [sys.executable, "-u", "-m", "scripts.generate_cvs", "--limit", str(limit)]
+        args = [
+            sys.executable, "-u",
+            str(BASE_DIR / "scripts" / "generate_cvs.py"),
+            "--limit", str(limit),
+        ]
         if no_image:
             args.append("--no-image")
         

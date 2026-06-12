@@ -3,7 +3,7 @@
 > A full-stack prototype for screening CVs using a RAG (Retrieval-Augmented Generation) pipeline.
 > Ask natural language questions about a collection of candidates and get AI-powered answers with source attribution.
 
-## Version: 1.0.5 
+## Version: 1.1.0
 
 ## Overview
 
