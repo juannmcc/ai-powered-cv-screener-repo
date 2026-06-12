@@ -39,6 +39,12 @@ uv run check-providers   # verify your LLM provider is ready
 
 ## Changelog
 
+### v0.2.1
+- Custom exceptions: ProviderError, CollectionEmptyError
+- Structured error responses from API (error code + detail)
+- Frontend displays specific error messages per error type
+- FastAPI Swagger UI available at /docs
+
 ### v0.2.0
 - Full chat UI: Next.js 15, Tailwind, message bubbles, source badges
 - Backend health indicator (green/red/yellow dot)
