@@ -2,10 +2,12 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Message } from "@/types/chat"
-import { askQuestion, checkHealth, fetchStats, APIError, Stats } from "@/lib/api"
+import CandidateBrowser from "@/components/CandidateBrowser"
+import { askQuestion, checkHealth, fetchStats, fetchCandidates, fetchSuggestions, APIError, Stats, Candidate } from "@/lib/api"
 import ChatMessage from "@/components/ChatMessage"
 import TypingIndicator from "@/components/TypingIndicator"
-import { Send, BrainCircuit, RotateCcw, Database } from "lucide-react"
+import { Send, BrainCircuit, RotateCcw, Database, Settings } from "lucide-react"
+import IngestBanner from "@/components/IngestBanner"
 
 const SUGGESTIONS = [
   "Who has experience with Python?",
@@ -15,26 +17,32 @@ const SUGGESTIONS = [
 ]
 
 export default function Home() {
-  const [messages, setMessages]         = useState<Message[]>([])
-  const [input, setInput]               = useState("")
-  const [loading, setLoading]           = useState(false)
+  const [messages, setMessages]           = useState<Message[]>([])
+  const [input, setInput]                 = useState("")
+  const [loading, setLoading]             = useState(false)
   const [backendStatus, setBackendStatus] = useState<"checking" | "ok" | "error">("checking")
-  const [stats, setStats]               = useState<Stats | null>(null)
-  const bottomRef                       = useRef<HTMLDivElement>(null)
+  const [ingested, setIngested]           = useState(false)
+  const [stats, setStats]                 = useState<Stats | null>(null)
+  const [candidates, setCandidates]       = useState<Candidate[]>([])
+  const [browserOpen, setBrowserOpen]     = useState(false)
+  const bottomRef                         = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     async function check() {
-      const ok = await checkHealth()
-      setBackendStatus(ok ? "ok" : "error")
-      if (ok) {
-        try {
-          const s = await fetchStats()
-          setStats(s)
-        } catch {}
+      const health = await checkHealth()
+      console.log("ingested:", health.ingested, "chunks:", health.chunks)
+      setBackendStatus(health.ok ? "ok" : "error")
+      setIngested(health.ingested)
+      if (health.ok) {
+        try { const s = await fetchStats(); setStats(s) } catch {}
+        try { const c = await fetchCandidates(); setCandidates(c) } catch {}
+      } else {
+        setStats(null)
+        setCandidates([])
       }
     }
     check()
-    const interval = setInterval(check, 30000)
+    const interval = setInterval(check, 1200)
     return () => clearInterval(interval)
   }, [])
 
@@ -57,12 +65,17 @@ export default function Home() {
     setLoading(true)
 
     try {
-      const data = await askQuestion(question)
+      const [data, suggestions] = await Promise.all([
+        askQuestion(question),
+        fetchSuggestions(question),
+      ])
+
       const assistantMsg: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
         content: data.answer,
         sources: data.sources,
+        suggestions,
         timestamp: new Date(),
       }
       setMessages(prev => [...prev, assistantMsg])
@@ -77,13 +90,12 @@ export default function Home() {
           content = err.message
         }
       }
-      const errorMsg: Message = {
+      setMessages(prev => [...prev, {
         id: crypto.randomUUID(),
         role: "assistant",
         content,
         timestamp: new Date(),
-      }
-      setMessages(prev => [...prev, errorMsg])
+      }])
     } finally {
       setLoading(false)
     }
@@ -96,8 +108,20 @@ export default function Home() {
     }
   }
 
+  function handleCandidateSelect(name: string) {
+    setBrowserOpen(false)
+    sendMessage(`Summarize the profile of ${name}`)
+  }
+
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
+    <div className={`flex flex-col h-screen bg-gray-50 transition-all duration-300 ${browserOpen ? "ml-64" : "ml-0"}`}>
+
+      <CandidateBrowser
+        candidates={candidates}
+        onSelect={handleCandidateSelect}
+        isOpen={browserOpen}
+        onToggle={() => setBrowserOpen(prev => !prev)}
+      />
 
       {/* Header */}
       <header className="bg-white border-b border-gray-100 px-6 py-4 shadow-sm">
@@ -132,25 +156,40 @@ export default function Home() {
                     <span className="text-gray-300">·</span>
                     <div className="flex items-center gap-1 text-xs text-gray-400">
                       <Database size={10} />
-                      <span>{stats.estimated_cvs} CVs · {stats.provider}/{stats.model}</span>
+                      <span>{stats.estimated_cvs} CVs</span>
                     </div>
                   </>
                 )}
               </div>
             </div>
           </div>
-          {messages.length > 0 && (
-            <button
-              onClick={() => setMessages([])}
+          <div className="flex items-center gap-2">
+            <a
+              href="/settings"
               className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-400
-                         hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all"
+                        hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all"
             >
-              <RotateCcw size={13} />
-              New conversation
-            </button>
-          )}
+              <Settings size={13} />
+              Settings
+            </a>
+            {messages.length > 0 && (
+              <button
+                onClick={() => setMessages([])}
+                className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-400
+                          hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all"
+              >
+                <RotateCcw size={13} />
+                New conversation
+              </button>
+            )}
+          </div>
         </div>
       </header>
+
+      <IngestBanner
+        ingested={ingested}
+        backendOk={backendStatus === "ok"}
+      />
 
       {/* Messages */}
       <main className="flex-1 overflow-y-auto px-4 py-6">
@@ -188,8 +227,12 @@ export default function Home() {
             </div>
           )}
 
-          {messages.map(msg => (
-            <ChatMessage key={msg.id} message={msg} />
+          {messages.map((msg) => (
+            <ChatMessage
+              key={msg.id}
+              message={msg}
+              onSuggestionSelect={sendMessage}
+            />
           ))}
 
           {loading && <TypingIndicator />}

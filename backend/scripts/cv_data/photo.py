@@ -12,6 +12,7 @@ import base64
 import hashlib
 import os
 import requests
+import time
 from io import BytesIO
 from pathlib import Path
 
@@ -66,8 +67,21 @@ def _fetch_cloudflare(name: str, size: int = 200) -> Image.Image | None:
         img_b64   = r.json()["result"]["image"]
         img_bytes = base64.b64decode(img_b64)
         img = Image.open(BytesIO(img_bytes)).convert("RGB")
+        time.sleep(2)
         return img.resize((size, size))
-    except Exception as e:
+    except requests.exceptions.HTTPError as e:
+        if e.response.status_code == 429:
+            print(f"           Rate limited, waiting 30s...")
+            time.sleep(30)
+            try:
+                r = requests.post(url, headers=headers, json=payload, timeout=30)
+                r.raise_for_status()
+                img_b64   = r.json()["result"]["image"]
+                img_bytes = base64.b64decode(img_b64)
+                img = Image.open(BytesIO(img_bytes)).convert("RGB")
+                return img.resize((size, size))
+            except Exception:
+                pass
         print(f"           Cloudflare photo failed for {name}: {e}")
         return None
 

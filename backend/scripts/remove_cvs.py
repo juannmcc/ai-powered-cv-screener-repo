@@ -12,17 +12,19 @@ CVS_DIR = Path(__file__).parent.parent / "data" / "cvs"
 
 
 def main():
-    target = sys.argv[1] if len(sys.argv) > 1 else None
+    import shutil
+    from pathlib import Path
 
-    if target:
-        folder = CVS_DIR / target
-        if not folder.exists():
-            print(f"Folder '{target}' not found in data/cvs/")
-            print(f"Available: {[f.name for f in CVS_DIR.iterdir() if f.is_dir()]}")
-            return
-        folders = [folder]
-    else:
-        folders = [f for f in CVS_DIR.iterdir() if f.is_dir()]
+    target = sys.argv[1] if len(sys.argv) > 1 else None
+    CVS_DIR    = Path(__file__).parent.parent / "data" / "cvs"
+    AVATARS_DIR = Path(__file__).parent.parent / "data" / "avatars"
+
+    folders = [CVS_DIR / target] if target else [f for f in CVS_DIR.iterdir() if f.is_dir()]
+
+    if target and not (CVS_DIR / target).exists():
+        print(f"Folder '{target}' not found.")
+        print(f"Available: {[f.name for f in CVS_DIR.iterdir() if f.is_dir()]}")
+        return
 
     if not folders:
         print("No CV output folders found.")
@@ -33,7 +35,10 @@ def main():
         count = len(list(f.glob("*.pdf")))
         print(f"  {f.name}  ({count} PDFs)")
 
-    confirm = input("\nDelete? [y/N] ")
+    avatars_count = len(list(AVATARS_DIR.glob("*.jpg"))) if AVATARS_DIR.exists() else 0
+    print(f"  avatars/  ({avatars_count} JPGs)")
+
+    confirm = input("\nDelete all? [y/N] ")
     if confirm.lower() != "y":
         print("Aborted.")
         return
@@ -41,6 +46,11 @@ def main():
     for f in folders:
         shutil.rmtree(f)
         print(f"  Deleted: {f.name}")
+
+    if AVATARS_DIR.exists():
+        shutil.rmtree(AVATARS_DIR)
+        AVATARS_DIR.mkdir()
+        print(f"  Cleared: avatars/")
 
     print("\nDone.")
 

@@ -9,6 +9,18 @@ export interface Stats {
   model: string
 }
 
+export interface Candidate {
+  name: string
+  source: string
+  avatar: string
+}
+
+export interface HealthStatus {
+  ok: boolean
+  ingested: boolean
+  chunks: number
+}
+
 export class APIError extends Error {
   constructor(
     public code: string,
@@ -39,12 +51,20 @@ export async function askQuestion(question: string): Promise<ChatResponse> {
   return res.json()
 }
 
-export async function checkHealth(): Promise<boolean> {
+export async function checkHealth(): Promise<HealthStatus> {
   try {
-    const res = await fetch(`${API_URL}/health`, { signal: AbortSignal.timeout(3000) })
-    return res.ok
+    const res = await fetch(`${API_URL}/health`, {
+      signal: AbortSignal.timeout(3000)
+    })
+    if (!res.ok) return { ok: false, ingested: false, chunks: 0 }
+    const data = await res.json()
+    return {
+      ok:       data.status === "ok",
+      ingested: data.ingested ?? false,
+      chunks:   data.chunks ?? 0,
+    }
   } catch {
-    return false
+    return { ok: false, ingested: false, chunks: 0 }
   }
 }
 
@@ -52,4 +72,26 @@ export async function fetchStats(): Promise<Stats> {
   const res = await fetch(`${API_URL}/api/stats`)
   if (!res.ok) throw new Error("Failed to fetch stats")
   return res.json()
+}
+
+export async function fetchCandidates(): Promise<Candidate[]> {
+  const res = await fetch(`${API_URL}/api/candidates`)
+  if (!res.ok) throw new Error("Failed to fetch candidates")
+  const data = await res.json()
+  return data.candidates
+}
+
+export async function fetchSuggestions(question: string): Promise<string[]> {
+  try {
+    const res = await fetch(`${API_URL}/api/suggestions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question }),
+    })
+    if (!res.ok) return []
+    const data = await res.json()
+    return data.suggestions || []
+  } catch {
+    return []
+  }
 }
