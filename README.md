@@ -39,6 +39,14 @@ uv run check-providers   # verify your LLM provider is ready
 
 ## Changelog
 
+### v0.3.4
+- Settings page /settings with LLM and image provider configuration
+- API key management with real-time validation per provider
+- CV Management panel: generate, ingest, delete with streaming logs
+- Folder selector for ingestion with active folder indicator
+- Cancel button for long-running operations
+- IngestBanner links directly to Settings
+
 ### v0.3.3
 - Ingest status banner: amber warning when no CVs in ChromaDB
 - Real-time updates via SQLite direct reads (no cache issues)
