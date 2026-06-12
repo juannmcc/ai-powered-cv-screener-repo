@@ -39,6 +39,12 @@ uv run check-providers   # verify your LLM provider is ready
 
 ## Changelog
 
+### v0.3.2
+- Auto-generated follow-up questions after each response (via LLM)
+- Purple suggestion cards below assistant messages
+- Click to instantly send as next question
+- Fetched in parallel with main answer (no extra wait)
+
 ### v0.3.1
 - Candidate browser: side drawer with all 25 candidates
 - AI-generated avatars served as static files

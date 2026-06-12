@@ -14,7 +14,7 @@ AVATARS_DIR.mkdir(parents=True, exist_ok=True)
 app = FastAPI(
     title="AI-Powered CV Screener",
     description="RAG-based CV screening API",
-    version="0.3.1",
+    version="0.3.2",
 )
 
 app.add_middleware(
@@ -34,4 +34,4 @@ app.mount("/avatars", StaticFiles(directory=str(AVATARS_DIR)), name="avatars")
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "version": "0.3.1"}
+    return {"status": "ok", "version": "0.3.2"}
