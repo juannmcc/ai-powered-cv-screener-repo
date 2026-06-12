@@ -39,6 +39,14 @@ uv run check-providers   # verify your LLM provider is ready
 
 ## Changelog
 
+### v0.3.3
+- Ingest status banner: amber warning when no CVs in ChromaDB
+- Real-time updates via SQLite direct reads (no cache issues)
+- Health, stats and candidates endpoints read from SQLite directly
+- Banner and counters update automatically without page reload
+- ingest-cvs cleans ChromaDB before reingest
+- remove-cvs now clears avatars folder too
+
 ### v0.3.2
 - Auto-generated follow-up questions after each response (via LLM)
 - Purple suggestion cards below assistant messages

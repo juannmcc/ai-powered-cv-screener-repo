@@ -14,7 +14,7 @@ AVATARS_DIR.mkdir(parents=True, exist_ok=True)
 app = FastAPI(
     title="AI-Powered CV Screener",
     description="RAG-based CV screening API",
-    version="0.3.2",
+    version="0.3.3",
 )
 
 app.add_middleware(
