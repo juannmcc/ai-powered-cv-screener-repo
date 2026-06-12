@@ -16,13 +16,13 @@ console.log("IngestBanner props:", { ingested, backendOk })
       <div className="max-w-3xl mx-auto flex items-center gap-3">
         <AlertTriangle size={16} className="text-amber-500 flex-shrink-0" />
         <p className="text-sm text-amber-700">
-          No CVs ingested yet. Run the following command to get started:
+          No CVs ingested yet.
         </p>
         <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-100 
                         rounded-lg border border-amber-200 ml-auto flex-shrink-0">
           <Terminal size={12} className="text-amber-600" />
           <code className="text-xs text-amber-700 font-mono">
-            cd backend && uv run ingest-cvs
+            Go to Configuration to ingest CVs now.
           </code>
         </div>
       </div>

@@ -64,9 +64,15 @@ def ingest_cv(pdf_path: Path, collection) -> int:
 
 def ingest_all(cvs_dir: Path = None) -> dict:
     import shutil
+
     if cvs_dir is None:
         from app.core.config import CVS_DIR
-        cvs_dir = CVS_DIR
+        folders = sorted([f for f in CVS_DIR.iterdir() if f.is_dir()], reverse=True)
+        if not folders:
+            print("No CV folders found")
+            return {"processed": 0, "chunks": 0, "errors": []}
+        cvs_dir = folders[0]
+        print(f"Using folder: {cvs_dir.name}")
 
     if CHROMA_DIR.exists():
         shutil.rmtree(CHROMA_DIR)
@@ -78,13 +84,13 @@ def ingest_all(cvs_dir: Path = None) -> dict:
         metadata={"hnsw:space": "cosine"},
     )
     results   = {"processed": 0, "chunks": 0, "errors": []}
-    pdf_files = sorted(cvs_dir.rglob("*.pdf"))
+    pdf_files = sorted(cvs_dir.glob("*.pdf"))
 
     if not pdf_files:
         print(f"No PDFs found in {cvs_dir}")
         return results
 
-    print(f"Ingesting {len(pdf_files)} CVs...\n")
+    print(f"Ingesting {len(pdf_files)} CVs from {cvs_dir.name}...\n")
 
     for pdf_path in pdf_files:
         print(f"  Processing: {pdf_path.name}...")

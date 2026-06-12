@@ -8,6 +8,8 @@ from app.core.exceptions import (
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 from app.core.config import AVATARS_DIR
+from app.api.settings import router as settings_router
+from app.api.cvs import router as cvs_router
 
 AVATARS_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -30,6 +32,8 @@ app.add_exception_handler(CollectionEmptyError, collection_empty_handler)
 app.add_exception_handler(Exception, generic_error_handler)
 
 app.include_router(chat_router, prefix="/api")
+app.include_router(settings_router, prefix="/api")
+app.include_router(cvs_router, prefix="/api")
 app.mount("/avatars", StaticFiles(directory=str(AVATARS_DIR)), name="avatars")
 
 @app.get("/health")
