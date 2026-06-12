@@ -66,3 +66,18 @@ export async function fetchCandidates(): Promise<Candidate[]> {
   const data = await res.json()
   return data.candidates
 }
+
+export async function fetchSuggestions(question: string): Promise<string[]> {
+  try {
+    const res = await fetch(`${API_URL}/api/suggestions`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question }),
+    })
+    if (!res.ok) return []
+    const data = await res.json()
+    return data.suggestions || []
+  } catch {
+    return []
+  }
+}

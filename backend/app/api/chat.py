@@ -117,3 +117,25 @@ async def get_avatar(filename: str):
     if not path.exists():
         raise HTTPException(status_code=404, detail="Avatar not found")
     return FileResponse(path, media_type="image/jpeg")
+
+
+@router.post("/suggestions")
+async def suggestions(request: ChatRequest):
+    prompt = f"""Based on this question about CV screening: "{request.question}"
+    
+Generate exactly 3 short follow-up questions a recruiter might ask next.
+Return ONLY a JSON array of 3 strings, no explanation, no markdown:
+["question 1", "question 2", "question 3"]"""
+
+    try:
+        messages = [{"role": "user", "content": prompt}]
+        response = chat(messages)
+        start = response.find("[")
+        end   = response.rfind("]") + 1
+        if start != -1 and end > start:
+            import json
+            questions = json.loads(response[start:end])
+            return {"suggestions": questions[:3]}
+    except Exception:
+        pass
+    return {"suggestions": []}

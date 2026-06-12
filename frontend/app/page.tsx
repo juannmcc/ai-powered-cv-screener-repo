@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react"
 import { Message } from "@/types/chat"
 import CandidateBrowser from "@/components/CandidateBrowser"
-import { askQuestion, checkHealth, fetchStats, fetchCandidates, APIError, Stats, Candidate } from "@/lib/api"
+import { askQuestion, checkHealth, fetchStats, fetchCandidates, fetchSuggestions, APIError, Stats, Candidate } from "@/lib/api"
 import ChatMessage from "@/components/ChatMessage"
 import TypingIndicator from "@/components/TypingIndicator"
 import { Send, BrainCircuit, RotateCcw, Database } from "lucide-react"
@@ -58,12 +58,17 @@ export default function Home() {
     setLoading(true)
 
     try {
-      const data = await askQuestion(question)
+      const [data, suggestions] = await Promise.all([
+        askQuestion(question),
+        fetchSuggestions(question),
+      ])
+
       const assistantMsg: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
         content: data.answer,
         sources: data.sources,
+        suggestions,
         timestamp: new Date(),
       }
       setMessages(prev => [...prev, assistantMsg])
@@ -200,8 +205,12 @@ export default function Home() {
             </div>
           )}
 
-          {messages.map(msg => (
-            <ChatMessage key={msg.id} message={msg} />
+          {messages.map((msg) => (
+            <ChatMessage
+              key={msg.id}
+              message={msg}
+              onSuggestionSelect={sendMessage}
+            />
           ))}
 
           {loading && <TypingIndicator />}
