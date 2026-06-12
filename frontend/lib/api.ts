@@ -2,6 +2,13 @@ import { ChatResponse } from "@/types/chat"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 
+export interface Stats {
+  chunks: number
+  estimated_cvs: number
+  provider: string
+  model: string
+}
+
 export class APIError extends Error {
   constructor(
     public code: string,
@@ -39,4 +46,10 @@ export async function checkHealth(): Promise<boolean> {
   } catch {
     return false
   }
+}
+
+export async function fetchStats(): Promise<Stats> {
+  const res = await fetch(`${API_URL}/api/stats`)
+  if (!res.ok) throw new Error("Failed to fetch stats")
+  return res.json()
 }

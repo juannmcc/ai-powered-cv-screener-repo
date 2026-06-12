@@ -171,3 +171,13 @@ uv run uvicorn app.main:app --reload --port 8000
 cd frontend
 npm run dev
 ```
+
+### API Endpoints
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | /health | Backend health check |
+| GET | /api/stats | CV count, chunks, active provider/model |
+| POST | /api/chat | Ask a question about candidates |
+
+Swagger UI (interactive): http://localhost:8000/docs

@@ -2,10 +2,10 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Message } from "@/types/chat"
-import { askQuestion, checkHealth, APIError } from "@/lib/api"
+import { askQuestion, checkHealth, fetchStats, APIError, Stats } from "@/lib/api"
 import ChatMessage from "@/components/ChatMessage"
 import TypingIndicator from "@/components/TypingIndicator"
-import { Send, BrainCircuit, RotateCcw } from "lucide-react"
+import { Send, BrainCircuit, RotateCcw, Database } from "lucide-react"
 
 const SUGGESTIONS = [
   "Who has experience with Python?",
@@ -15,16 +15,23 @@ const SUGGESTIONS = [
 ]
 
 export default function Home() {
-  const [messages, setMessages]   = useState<Message[]>([])
-  const [input, setInput]         = useState("")
-  const [loading, setLoading]     = useState(false)
-  const bottomRef                 = useRef<HTMLDivElement>(null)
+  const [messages, setMessages]         = useState<Message[]>([])
+  const [input, setInput]               = useState("")
+  const [loading, setLoading]           = useState(false)
   const [backendStatus, setBackendStatus] = useState<"checking" | "ok" | "error">("checking")
+  const [stats, setStats]               = useState<Stats | null>(null)
+  const bottomRef                       = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     async function check() {
       const ok = await checkHealth()
       setBackendStatus(ok ? "ok" : "error")
+      if (ok) {
+        try {
+          const s = await fetchStats()
+          setStats(s)
+        } catch {}
+      }
     }
     check()
     const interval = setInterval(check, 30000)
@@ -101,34 +108,42 @@ export default function Home() {
             </div>
             <div>
               <h1 className="text-base font-semibold text-gray-900">CV Screener</h1>
-                <div className="flex items-center gap-1.5">
-                  <p className="text-xs text-gray-400">AI-powered candidate search</p>
-                  <span className="text-gray-300">·</span>
-                  <div className="flex items-center gap-1">
-                    <div className={`w-1.5 h-1.5 rounded-full ${
-                      backendStatus === "ok" ? "bg-green-400" :
-                      backendStatus === "error" ? "bg-red-400" :
-                      "bg-yellow-400 animate-pulse"
-                    }`} />
-                    <span className={`text-xs ${
-                      backendStatus === "ok" ? "text-green-500" :
-                      backendStatus === "error" ? "text-red-400" :
-                      "text-yellow-500"
-                    }`}>
-                      {backendStatus === "ok" ? "Backend connected" :
-                      backendStatus === "error" ? "Backend offline" :
-                      "Connecting..."}
-                    </span>
-                  </div>
+              <div className="flex items-center gap-1.5">
+                <p className="text-xs text-gray-400">AI-powered candidate search</p>
+                <span className="text-gray-300">·</span>
+                <div className="flex items-center gap-1">
+                  <div className={`w-1.5 h-1.5 rounded-full ${
+                    backendStatus === "ok" ? "bg-green-400" :
+                    backendStatus === "error" ? "bg-red-400" :
+                    "bg-yellow-400 animate-pulse"
+                  }`} />
+                  <span className={`text-xs ${
+                    backendStatus === "ok" ? "text-green-500" :
+                    backendStatus === "error" ? "text-red-400" :
+                    "text-yellow-500"
+                  }`}>
+                    {backendStatus === "ok" ? "Backend connected" :
+                     backendStatus === "error" ? "Backend offline" :
+                     "Connecting..."}
+                  </span>
                 </div>
+                {stats && (
+                  <>
+                    <span className="text-gray-300">·</span>
+                    <div className="flex items-center gap-1 text-xs text-gray-400">
+                      <Database size={10} />
+                      <span>{stats.estimated_cvs} CVs · {stats.provider}/{stats.model}</span>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-            
           </div>
           {messages.length > 0 && (
             <button
               onClick={() => setMessages([])}
-              className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-400 
-                        hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all"
+              className="flex items-center gap-2 px-3 py-1.5 text-xs text-gray-400
+                         hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-all"
             >
               <RotateCcw size={13} />
               New conversation
@@ -143,7 +158,7 @@ export default function Home() {
 
           {messages.length === 0 && (
             <div className="text-center pt-16">
-              <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center 
+              <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center
                               justify-center mx-auto mb-4">
                 <BrainCircuit size={32} className="text-blue-600" />
               </div>
@@ -151,15 +166,19 @@ export default function Home() {
                 Ask about your candidates
               </h2>
               <p className="text-gray-400 text-sm mb-8">
-                Search across {25} CVs using natural language
+                Search across{" "}
+                <span className="text-blue-500 font-medium">
+                  {stats?.estimated_cvs ?? "..."} CVs
+                </span>{" "}
+                using natural language
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-lg mx-auto">
                 {SUGGESTIONS.map((s) => (
                   <button
                     key={s}
                     onClick={() => sendMessage(s)}
-                    className="text-left px-4 py-3 bg-white border border-gray-100 
-                               rounded-xl text-sm text-gray-600 hover:border-blue-200 
+                    className="text-left px-4 py-3 bg-white border border-gray-100
+                               rounded-xl text-sm text-gray-600 hover:border-blue-200
                                hover:text-blue-600 hover:bg-blue-50 transition-all shadow-sm"
                   >
                     {s}
@@ -188,7 +207,7 @@ export default function Home() {
             onKeyDown={handleKeyDown}
             placeholder="Ask about candidates..."
             disabled={loading}
-            className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl 
+            className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl
                        text-sm text-gray-800 placeholder-gray-400 outline-none
                        focus:border-blue-300 focus:bg-white transition-all
                        disabled:opacity-50"
