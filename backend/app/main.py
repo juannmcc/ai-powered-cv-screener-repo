@@ -9,7 +9,7 @@ from app.core.exceptions import (
 app = FastAPI(
     title="AI-Powered CV Screener",
     description="RAG-based CV screening API",
-    version="0.2.1",
+    version="0.2.2",
 )
 
 app.add_middleware(
@@ -29,4 +29,4 @@ app.include_router(chat_router, prefix="/api")
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "version": "0.2.1"}
+    return {"status": "ok", "version": "0.2.2"}
