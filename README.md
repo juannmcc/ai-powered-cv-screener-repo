@@ -160,6 +160,16 @@ See [docs/architecture.md](docs/architecture.md) and [docs/diagram.md](docs/diag
 
 ## Changelog
 
+### v1.1.0
+- Hexagonal architecture: domain, application, infrastructure, interfaces layers
+- Domain entities: Candidate, Chunk, ChatResponse, Source
+- Domain ports: LLMPort, EmbeddingPort, VectorStorePort, PDFPort
+- Infrastructure adapters: Ollama, Gemini, OpenRouter, ChromaDB, pdfplumber
+- Application use cases: ChatUseCase, IngestUseCase
+- Dependency injection via FastAPI Depends
+- Legacy services layer removed
+- docs/hexagonal.md: architecture documentation
+
 ### v1.0.0
 - Complete full-stack RAG application
 - Settings panel with provider management and CV management
