@@ -40,123 +40,125 @@ See [docs/diagram.md](docs/diagram.md) for the full detailed diagram.
 ai-powered-cv-screener-repo/
 ├── backend/
 │   ├── app/
-│   │   ├── api/          # FastAPI endpoints (chat, settings, cvs)
-│   │   ├── core/         # Config, exceptions
-│   │   └── services/     # RAG, embeddings, LLM
-│   ├── scripts/          # CLI tools (generate, ingest, configure)
-│   └── data/             # CVs (PDF) + ChromaDB + avatars
-├── frontend/             # Next.js chat interface + settings
-└── docs/                 # Architecture, diagrams, provider guides
+│   │   ├── api/            # FastAPI endpoints (chat, settings, cvs)
+│   │   ├── application/    # Use cases (ChatUseCase, IngestUseCase)
+│   │   ├── core/           # Config, dependencies, exceptions
+│   │   ├── domain/         # Entities and ports (hexagonal architecture)
+│   │   └── infrastructure/ # Adapters (Ollama, ChromaDB, pdfplumber)
+│   ├── scripts/            # CLI tools (generate, ingest, configure)
+│   └── data/               # CVs (PDF) + ChromaDB + avatars
+├── frontend/               # Next.js chat interface + settings
+└── docs/                   # Architecture, diagrams, provider guides
 
 ## Prerequisites
 
 - Python 3.10+ with [uv](https://github.com/astral-sh/uv)
 - Node.js 18+
-- [Ollama](https://ollama.com) with `llama3.2` and `nomic-embed-text`
+- [Ollama](https://ollama.com)
 
 ## Quick Start
 
-### 1. Clone and install
+### 1. Clone
 
 ```bash
 git clone https://github.com/juannmcc/ai-powered-cv-screener-repo.git
 cd ai-powered-cv-screener-repo
 ```
 
-### 2. Setup backend
+### 2. Install dependencies
 
 ```bash
-cd backend
-uv pip install -e .
-cp .env.example .env
+# Backend
+cd backend && uv pip install -e .
+
+# Frontend
+cd ../frontend && npm install
 ```
 
 ### 3. Setup Ollama
 
 ```bash
-# Mac/Linux
-brew install ollama   # or: curl -fsSL https://ollama.com/install.sh | sh
-ollama serve &
+# Mac
+brew install ollama
+
+# Linux
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Pull required models
 ollama pull llama3.2
 ollama pull nomic-embed-text
 ```
 
-### 4. Verify providers
+### 4. Configure
 
 ```bash
-uv run check-providers
+cd backend
+cp .env.example .env
+# Edit .env if needed — defaults work out of the box with Ollama
 ```
 
-### 5. Generate and ingest CVs
+### 5. Start
+
+Open 3 terminals:
 
 ```bash
-uv run generate-cvs           # generates 25 CVs (~5-8 min)
-uv run ingest-cvs             # embeds CVs into ChromaDB
-```
+# Terminal 1 — Ollama
+ollama serve
 
-Or use the Settings panel in the UI.
-
-### 6. Start backend
-
-```bash
+# Terminal 2 — Backend
+cd backend
 uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
-```
 
-### 7. Start frontend
-
-```bash
-cd ../frontend
-npm install
+# Terminal 3 — Frontend
+cd frontend
 npm run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000)
 
-## CLI Commands
+### 6. Generate and ingest CVs
 
-All commands run from the `backend/` directory via `uv run`:
+Once the app is running, go to **Settings → CV Management** to:
+- Generate CVs (with or without AI photos)
+- Ingest them into ChromaDB
+
+Everything else is managed from the UI.
+
+## Features
+
+- **RAG Pipeline** — PDF extraction → chunking → embeddings → ChromaDB vector search
+- **Multi-provider** — Ollama (local/free), Gemini, OpenRouter — switchable via Settings UI
+- **AI Photos** — Cloudflare Workers AI (FLUX) or placeholder avatars
+- **Chat UI** — Source attribution, follow-up suggestions, candidate browser with avatars
+- **Settings Panel** — Provider config, API key management, CV generation/ingestion with streaming
+- **Health monitoring** — Backend status, ingest status, auto-polling every 5s
+- **Hexagonal Architecture** — Clean separation of domain, application, infrastructure layers
+
+## Architecture
+
+See [docs/architecture.md](docs/architecture.md), [docs/diagram.md](docs/diagram.md) and [docs/hexagonal.md](docs/hexagonal.md).
+
+## Provider Setup
+
+See [docs/providers.md](docs/providers.md) for detailed setup guides (Gemini, OpenRouter, Cloudflare).
+
+## CLI Reference
+
+All commands run from `backend/` via `uv run`. Most workflows are available in the UI.
 
 | Command | Description |
 |---|---|
 | `uv run check-providers` | Validate all LLM/image providers |
 | `uv run configure` | Interactive provider/model switcher |
-| `uv run generate-cvs` | Generate 25 CVs (`--limit N`, `--no-image`) |
+| `uv run generate-cvs` | Generate CVs (`--limit N`, `--no-image`) |
 | `uv run ingest-cvs` | Ingest PDFs into ChromaDB |
 | `uv run remove-cvs` | Remove CV output folders |
 
-## API Endpoints
+See [docs/cli-commands.md](docs/cli-commands.md) for full reference.
 
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | /health | Backend health + ingest status |
-| GET | /api/stats | CV count, chunks, active provider |
-| GET | /api/candidates | List all ingested candidates |
-| POST | /api/chat | Ask a question about candidates |
-| GET | /api/settings | Get current configuration |
-| POST | /api/settings | Update a configuration value |
-| GET | /api/settings/validate/{provider} | Validate provider credentials |
-| POST | /api/cvs/generate | Generate CVs with streaming logs |
-| POST | /api/cvs/ingest | Ingest CVs with streaming logs |
+## API
 
 Swagger UI: [http://localhost:8000/docs](http://localhost:8000/docs)
-
-## Features
-
-- **RAG Pipeline** — PDF extraction → chunking → embeddings → ChromaDB vector search
-- **Multi-provider** — Ollama (local/free), Gemini, OpenRouter — switchable via UI
-- **AI Photos** — Cloudflare Workers AI (FLUX) or placeholder avatars
-- **Chat UI** — Source attribution, follow-up suggestions, candidate browser
-- **Settings Panel** — Provider config, API key management, CV generation/ingestion
-- **Real-time streaming** — CV generation and ingestion with live logs
-- **Health monitoring** — Backend status, ingest status, auto-polling
-
-## Provider Setup
-
-See [docs/providers.md](docs/providers.md) for detailed setup guides for all providers.
-
-## Architecture
-
-See [docs/architecture.md](docs/architecture.md) and [docs/diagram.md](docs/diagram.md).
 
 ## Changelog
 
@@ -169,6 +171,7 @@ See [docs/architecture.md](docs/architecture.md) and [docs/diagram.md](docs/diag
 - Dependency injection via FastAPI Depends
 - Legacy services layer removed
 - docs/hexagonal.md: architecture documentation
+- Backend offline UI state with copy-to-clipboard start command
 
 ### v1.0.0
 - Complete full-stack RAG application
