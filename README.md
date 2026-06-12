@@ -39,6 +39,14 @@ uv run check-providers   # verify your LLM provider is ready
 
 ## Changelog
 
+### v0.3.1
+- Candidate browser: side drawer with all 25 candidates
+- AI-generated avatars served as static files
+- Click candidate → auto-asks for their profile summary
+- Avatar fallback to initials placeholder
+- remove-cvs now clears avatars folder too
+- ingest-cvs cleans ChromaDB before reingest
+
 ### v0.3.0
 - docs/diagram.md: full Mermaid architecture diagram
 - README: embedded simplified diagram
