@@ -1,8 +1,10 @@
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from app.services.rag import search
 from app.services.llm import chat
 from app.core.exceptions import CollectionEmptyError
+from app.core.config import AVATARS_DIR
 
 router = APIRouter()
 
@@ -60,8 +62,8 @@ async def chat_endpoint(request: ChatRequest):
     ]
 
     answer = chat(messages)
-
     return ChatResponse(answer=answer, sources=sources)
+
 
 @router.get("/stats")
 async def stats():
@@ -71,13 +73,47 @@ async def stats():
         client     = chromadb.PersistentClient(path=str(CHROMA_DIR))
         collection = client.get_or_create_collection(COLLECTION_NAME)
         count      = collection.count()
-        
         cv_count   = max(1, round(count / 4.2))
         return {
-            "chunks": count,
+            "chunks":        count,
             "estimated_cvs": cv_count,
-            "provider": LLM_PROVIDER,
-            "model": LLM_MODEL,
+            "provider":      LLM_PROVIDER,
+            "model":         LLM_MODEL,
         }
     except Exception as e:
         return {"chunks": 0, "estimated_cvs": 0, "provider": LLM_PROVIDER, "model": LLM_MODEL}
+
+
+@router.get("/candidates")
+async def candidates():
+    import chromadb
+    from app.core.config import CHROMA_DIR, COLLECTION_NAME, BASE_DIR
+    try:
+        client     = chromadb.PersistentClient(path=str(CHROMA_DIR))
+        collection = client.get_or_create_collection(COLLECTION_NAME)
+        results    = collection.get(include=["metadatas"])
+
+        seen = {}
+        for meta in results["metadatas"]:
+            name   = meta.get("candidate", "")
+            source = meta.get("source", "")
+            if name and name not in seen:
+                slug = source.replace(".pdf", "")
+                seen[name] = {
+                    "name":   name,
+                    "source": source,
+                    "avatar": f"/avatars/{slug}.jpg",
+                }
+
+        candidates = sorted(seen.values(), key=lambda x: x["name"])
+        return {"candidates": candidates, "total": len(candidates)}
+    except Exception as e:
+        return {"candidates": [], "total": 0}
+
+
+@router.get("/avatars/{filename}")
+async def get_avatar(filename: str):
+    path = AVATARS_DIR / filename
+    if not path.exists():
+        raise HTTPException(status_code=404, detail="Avatar not found")
+    return FileResponse(path, media_type="image/jpeg")

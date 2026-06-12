@@ -16,6 +16,7 @@ GEMINI_API_KEY  = os.getenv("GEMINI_API_KEY", "")
 # Paths
 CVS_DIR    = BASE_DIR / "data" / "cvs"
 CHROMA_DIR = BASE_DIR / "data" / "chroma_db"
+AVATARS_DIR = BASE_DIR / "data" / "avatars"
 
 # RAG
 CHUNK_SIZE      = 500

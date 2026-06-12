@@ -42,6 +42,9 @@ _timestamp = datetime.now().strftime("%Y%m%d-%H%M")
 OUTPUT_DIR = Path(__file__).parent.parent / "data" / "cvs" / _timestamp
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
+AVATARS_DIR = Path(__file__).parent.parent / "data" / "avatars"
+AVATARS_DIR.mkdir(parents=True, exist_ok=True)
+
 
 def generate_cv_content(name: str, role: str, stack: str) -> dict:
     prompt = f"""Generate a realistic professional CV for a fake person.
@@ -246,13 +249,15 @@ def create_cv_pdf(name: str, role: str, city: str, data: dict, output_path: Path
 
 def main():
     import argparse
+    from io import BytesIO
+    from PIL import Image as PILImage
+
     parser = argparse.ArgumentParser(description="Generate fake CVs")
     parser.add_argument("--limit", type=int, default=len(PROFILES),
                         help=f"Number of CVs to generate (max {len(PROFILES)})")
     parser.add_argument("--no-image", action="store_true",
                         help="Skip AI photo generation, use placeholder instead")
-    args = parser.parse_args()
-
+    args  = parser.parse_args()
     limit = min(args.limit, len(PROFILES))
     names = FIRST_NAMES.copy()
     random.shuffle(names)
@@ -260,16 +265,26 @@ def main():
     print(f"Generating {limit} CVs...\n")
 
     for i, profile in enumerate(PROFILES[:limit]):
-        name = f"{names[i]} {random.choice(LAST_NAMES)}"
-        city = random.choice(CITIES)
-        slug = name.replace(" ", "_")
+        name        = f"{names[i]} {random.choice(LAST_NAMES)}"
+        city        = random.choice(CITIES)
+        slug        = name.replace(" ", "_")
         output_path = OUTPUT_DIR / f"cv_{str(i+1).zfill(2)}_{slug}.pdf"
+        pad         = len(str(limit))
 
-        pad = len(str(limit))
         print(f"[{str(i+1).zfill(pad)}/{limit}] {name} — {profile['role']}...")
 
         try:
-            data = generate_cv_content(name, profile["role"], profile["stack"])
+            data  = generate_cv_content(name, profile["role"], profile["stack"])
+            photo = fetch_photo(name)
+
+            try:
+                img_bytes = image_to_bytes(photo)
+                PILImage.open(BytesIO(img_bytes)).verify()
+                avatar_path = AVATARS_DIR / f"{output_path.stem}.jpg"
+                avatar_path.write_bytes(img_bytes)
+            except Exception as e:
+                print(f"           Avatar save failed: {e}")
+
             create_cv_pdf(name, profile["role"], city, data, output_path, use_photo=not args.no_image)
             print(f"           Saved: {output_path.name}")
         except Exception as e:

@@ -12,6 +12,13 @@ from app.services.rag import ingest_all
 
 
 def main():
+    import shutil
+    from app.core.config import CHROMA_DIR
+
+    if CHROMA_DIR.exists():
+        shutil.rmtree(CHROMA_DIR)
+        CHROMA_DIR.mkdir(parents=True, exist_ok=True)
+
     results = ingest_all()
     if results["errors"]:
         print(f"\nErrors ({len(results['errors'])}):")

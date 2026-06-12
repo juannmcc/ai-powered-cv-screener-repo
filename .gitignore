@@ -10,6 +10,7 @@ backend/data/chroma_db/
 
 # PDFs generados
 backend/data/cvs/
+backend/data/avatars/
 
 # Node / Next.js
 frontend/node_modules/
