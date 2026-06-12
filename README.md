@@ -100,3 +100,21 @@ uv run check-providers   # verify your LLM provider is ready
 
 ### v0.1.0
 - Initial project scaffold
+
+## Architecture
+
+```mermaid
+flowchart LR
+    PDF[25 CV PDFs] --> Ingest[RAG Ingestion]
+    Ingest --> ChromaDB[(ChromaDB)]
+    User[User Question] --> Frontend[Next.js UI]
+    Frontend --> API[FastAPI]
+    API --> Embed[Embed Question]
+    Embed --> ChromaDB
+    ChromaDB --> Context[Top-5 Chunks]
+    Context --> LLM[Ollama llama3.2]
+    LLM --> Answer[Answer + Sources]
+    Answer --> Frontend
+```
+
+See [docs/diagram.md](docs/diagram.md) for the full detailed diagram.
