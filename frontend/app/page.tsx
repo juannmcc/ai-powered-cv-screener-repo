@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Message } from "@/types/chat"
-import { askQuestion } from "@/lib/api"
+import { askQuestion, checkHealth, APIError } from "@/lib/api"
 import ChatMessage from "@/components/ChatMessage"
 import TypingIndicator from "@/components/TypingIndicator"
 import { Send, BrainCircuit, RotateCcw } from "lucide-react"
@@ -22,16 +22,12 @@ export default function Home() {
   const [backendStatus, setBackendStatus] = useState<"checking" | "ok" | "error">("checking")
 
   useEffect(() => {
-    async function checkHealth() {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/health`)
-        setBackendStatus(res.ok ? "ok" : "error")
-      } catch {
-        setBackendStatus("error")
-      }
+    async function check() {
+      const ok = await checkHealth()
+      setBackendStatus(ok ? "ok" : "error")
     }
-    checkHealth()
-    const interval = setInterval(checkHealth, 30000)
+    check()
+    const interval = setInterval(check, 30000)
     return () => clearInterval(interval)
   }, [])
 
@@ -64,10 +60,20 @@ export default function Home() {
       }
       setMessages(prev => [...prev, assistantMsg])
     } catch (err) {
+      let content = "Sorry, something went wrong. Make sure the backend is running."
+      if (err instanceof APIError) {
+        if (err.code === "no_cvs_ingested") {
+          content = "No CVs found in the database. Please run: uv run ingest-cvs"
+        } else if (err.code === "provider_unavailable") {
+          content = `LLM provider error: ${err.message}. Check your provider configuration.`
+        } else {
+          content = err.message
+        }
+      }
       const errorMsg: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
-        content: "Sorry, something went wrong. Make sure the backend is running.",
+        content,
         timestamp: new Date(),
       }
       setMessages(prev => [...prev, errorMsg])

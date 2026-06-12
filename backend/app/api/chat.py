@@ -1,11 +1,8 @@
-"""
-Chat API endpoint — RAG + LLM response generation.
-"""
-
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from app.services.rag import search
 from app.services.llm import chat
+from app.core.exceptions import CollectionEmptyError
 
 router = APIRouter()
 
@@ -36,24 +33,18 @@ async def chat_endpoint(request: ChatRequest):
     if not request.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty")
 
-    # Retrieve chunks
     hits = search(request.question)
 
     if not hits:
-        return ChatResponse(
-            answer="I couldn't find relevant information in the CV database. Make sure CVs have been ingested.",
-            sources=[],
-        )
+        raise CollectionEmptyError()
 
-    # Build context
     context = "\n\n---\n\n".join([
         f"From {h['candidate']}:\n{h['content']}"
         for h in hits
     ])
 
-    # Deduplicate sources
-    seen     = set()
-    sources  = []
+    seen    = set()
+    sources = []
     for h in hits:
         if h["candidate"] not in seen:
             seen.add(h["candidate"])
@@ -63,7 +54,6 @@ async def chat_endpoint(request: ChatRequest):
                 score=h["score"],
             ))
 
-    # Build messages
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": f"Context:\n{context}\n\nQuestion: {request.question}"},
