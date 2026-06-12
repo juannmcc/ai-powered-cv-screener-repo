@@ -12,6 +12,7 @@ export interface Stats {
 export interface Candidate {
   name: string
   source: string
+  avatar: string
 }
 
 export class APIError extends Error {

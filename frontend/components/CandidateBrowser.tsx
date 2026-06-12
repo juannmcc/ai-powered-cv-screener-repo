@@ -2,6 +2,7 @@
 
 import { Candidate } from "@/lib/api"
 import { User, ChevronRight, Users } from "lucide-react"
+import { useState } from "react"
 
 interface Props {
   candidates: Candidate[]
@@ -62,10 +63,28 @@ export default function CandidateBrowser({ candidates, onSelect, isOpen, onToggl
                            hover:bg-blue-50 hover:text-blue-600 transition-all
                            text-left group"
               >
-                <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center 
-                                justify-center flex-shrink-0 group-hover:bg-blue-200">
-                  <User size={13} className="text-blue-600" />
-                </div>
+                    <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0
+                    bg-blue-100 flex items-center justify-center border
+                    border-blue-200">
+                        <img
+                            src={`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}${c.avatar}`}
+                            alt={c.name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                            const target = e.currentTarget
+                            target.style.display = "none"
+                            const parent = target.parentElement
+                            if (parent) {
+                                parent.innerHTML = `
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
+                                    viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                    <circle cx="12" cy="7" r="4"/>
+                                </svg>`
+                            }
+                            }}
+                        />
+                    </div>
                 <span className="text-sm text-gray-700 group-hover:text-blue-600 
                                  truncate flex-1">
                   {c.name}
