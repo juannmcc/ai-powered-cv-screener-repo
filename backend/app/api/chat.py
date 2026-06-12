@@ -81,3 +81,24 @@ async def stats():
         }
     except Exception as e:
         return {"chunks": 0, "estimated_cvs": 0, "provider": LLM_PROVIDER, "model": LLM_MODEL}
+
+@router.get("/candidates")
+async def candidates():
+    import chromadb
+    from app.core.config import CHROMA_DIR, COLLECTION_NAME
+    try:
+        client     = chromadb.PersistentClient(path=str(CHROMA_DIR))
+        collection = client.get_or_create_collection(COLLECTION_NAME)
+        results    = collection.get(include=["metadatas"])
+        
+        seen  = {}
+        for meta in results["metadatas"]:
+            name = meta.get("candidate", "")
+            source = meta.get("source", "")
+            if name and name not in seen:
+                seen[name] = {"name": name, "source": source}
+
+        candidates = sorted(seen.values(), key=lambda x: x["name"])
+        return {"candidates": candidates, "total": len(candidates)}
+    except Exception as e:
+        return {"candidates": [], "total": 0}
