@@ -2,6 +2,24 @@ import { ChatResponse } from "@/types/chat"
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
 
+export interface Stats {
+  chunks: number
+  estimated_cvs: number
+  provider: string
+  model: string
+}
+
+export class APIError extends Error {
+  constructor(
+    public code: string,
+    message: string,
+    public status: number,
+  ) {
+    super(message)
+    this.name = "APIError"
+  }
+}
+
 export async function askQuestion(question: string): Promise<ChatResponse> {
   const res = await fetch(`${API_URL}/api/chat`, {
     method: "POST",
@@ -11,8 +29,27 @@ export async function askQuestion(question: string): Promise<ChatResponse> {
 
   if (!res.ok) {
     const error = await res.json().catch(() => ({}))
-    throw new Error(error.detail || `API error: ${res.status}`)
+    throw new APIError(
+      error.error || "unknown_error",
+      error.detail || `API error: ${res.status}`,
+      res.status,
+    )
   }
 
+  return res.json()
+}
+
+export async function checkHealth(): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_URL}/health`, { signal: AbortSignal.timeout(3000) })
+    return res.ok
+  } catch {
+    return false
+  }
+}
+
+export async function fetchStats(): Promise<Stats> {
+  const res = await fetch(`${API_URL}/api/stats`)
+  if (!res.ok) throw new Error("Failed to fetch stats")
   return res.json()
 }

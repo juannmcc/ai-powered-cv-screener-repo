@@ -39,6 +39,23 @@ uv run check-providers   # verify your LLM provider is ready
 
 ## Changelog
 
+### v0.3.0
+- docs/diagram.md: full Mermaid architecture diagram
+- README: embedded simplified diagram
+- Provider options table with status
+
+### v0.2.2
+- /api/stats endpoint: chunks, CV count, provider, model
+- Dynamic CV counter in UI (from backend)
+- Provider + model shown in header
+- Source attribution polished with percentage scores
+
+### v0.2.1
+- Custom exceptions: ProviderError, CollectionEmptyError
+- Structured error responses from API (error code + detail)
+- Frontend displays specific error messages per error type
+- FastAPI Swagger UI available at /docs
+
 ### v0.2.0
 - Full chat UI: Next.js 15, Tailwind, message bubbles, source badges
 - Backend health indicator (green/red/yellow dot)
@@ -88,3 +105,21 @@ uv run check-providers   # verify your LLM provider is ready
 
 ### v0.1.0
 - Initial project scaffold
+
+## Architecture
+
+```mermaid
+flowchart LR
+    PDF[25 CV PDFs] --> Ingest[RAG Ingestion]
+    Ingest --> ChromaDB[(ChromaDB)]
+    User[User Question] --> Frontend[Next.js UI]
+    Frontend --> API[FastAPI]
+    API --> Embed[Embed Question]
+    Embed --> ChromaDB
+    ChromaDB --> Context[Top-5 Chunks]
+    Context --> LLM[Ollama llama3.2]
+    LLM --> Answer[Answer + Sources]
+    Answer --> Frontend
+```
+
+See [docs/diagram.md](docs/diagram.md) for the full detailed diagram.
