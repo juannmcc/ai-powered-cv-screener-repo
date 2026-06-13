@@ -37,6 +37,8 @@ See [docs/diagram.md](docs/diagram.md) for the full detailed diagram.
 | Image Generation | Cloudflare Workers AI (FLUX) · OpenAI DALL-E 3 · Placeholder |
 
 ## Project Structure
+
+```
 ai-powered-cv-screener-repo/
 ├── backend/
 │   ├── app/
@@ -49,6 +51,7 @@ ai-powered-cv-screener-repo/
 │   └── data/               # CVs (PDF) + ChromaDB + avatars
 ├── frontend/               # Next.js chat interface + settings
 └── docs/                   # Architecture, diagrams, provider guides
+```
 
 ## Prerequisites
 
